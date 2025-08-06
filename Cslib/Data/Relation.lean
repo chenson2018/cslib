@@ -21,6 +21,10 @@ abbrev Diamond (R : α → α → Prop) := ∀ {A B C : α}, R A B → R A C →
 /-- A relation is confluent when its reflexive transitive closure has the diamond property. -/
 abbrev Confluence (R : α → α → Prop) := Diamond (Relation.ReflTransGen R)
 
+theorem triangle_diamond {f : α → α} (tri : ∀ (A B), R A B → R B (f A)) : Diamond R := by
+  intros A B C AB AC
+  refine ⟨f A, tri _ _ AB, tri _ _ AC⟩
+
 /-- Extending a multistep reduction by a single step preserves multi-joinability. -/
 lemma Relation.ReflTransGen.diamond_extend (h : Diamond R) :
   Relation.ReflTransGen R A B →
