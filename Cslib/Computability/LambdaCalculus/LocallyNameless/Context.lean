@@ -20,7 +20,7 @@ universe u v
 
 variable {Var : Type u} {Ty : Type v} [DecidableEq Var]
 
-namespace LambdaCalculus.LocallyNameless.Stlc
+namespace LambdaCalculus.LocallyNameless
 
 /-- A typing context is a list of free variables and corresponding types. -/
 abbrev Context (Var : Type u) (Ty : Type v) := List ((_ : Var) × Ty)
@@ -56,4 +56,4 @@ theorem wf_strengthen : (Δ ++ ⟨x, σ⟩ :: Γ)✓ → (Δ ++ Γ)✓ := by
   have sl : List.Sublist (Δ ++ Γ) (Δ ++ ⟨x, σ⟩ :: Γ) := by simp
   exact List.NodupKeys.sublist sl ok
 
-end LambdaCalculus.LocallyNameless.Stlc.Context
+end LambdaCalculus.LocallyNameless.Context

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Henson
 -/
 
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Stlc.Context
+import Cslib.Computability.LambdaCalculus.LocallyNameless.Context
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.Properties
 
 /-! # λ-calculus
