@@ -75,23 +75,20 @@ def Ty.openRec (K : ℕ) (U : Ty Var) : Ty Var → Ty Var
 
 scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Ty.openRec i sub e
 
-@[grind =]
 lemma Ty.openRec_top : top⟦i ↝ s⟧ = top := by rfl
 
-@[grind =]
 lemma Ty.openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else (bvar i') := by rfl
 
-@[grind =]
 lemma Ty.openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
 
-@[grind =]
 lemma Ty.openRec_arrow : (arrow T1 T2)⟦i ↝ s⟧ = arrow (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
 
-@[grind =]
 lemma Ty.openRec_all : (all T1 T2)⟦i ↝ s⟧ = all (T1⟦i ↝ s⟧) (T2⟦i + 1 ↝ s⟧) := by rfl
 
-@[grind =]
 lemma Ty.openRec_sum : (sum T1 T2)⟦i ↝ s⟧ = sum (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
+
+attribute [grind =] 
+  Ty.openRec_top Ty.openRec_bvar Ty.openRec_fvar Ty.openRec_arrow Ty.openRec_all Ty.openRec_sum
 
 /-- Variable opening (type opening to type) of the closest binding. -/
 def Ty.open' (T U : Ty Var) := Ty.openRec 0 U T

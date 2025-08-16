@@ -34,7 +34,7 @@ lemma Ty.open_lc (T : Ty Var) U k (lc : T.LC) : T = T⟦k ↝ U⟧ := by
   induction lc generalizing k
   case all => 
     -- TODO: how to tell grind to try `free_union`?
-    let ⟨x, _⟩ := fresh_exists <| free_union (free := fv) Var
+    let ⟨x, _⟩ := fresh_exists <| free_union Var
     grind
   all_goals grind
 
