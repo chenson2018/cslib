@@ -50,7 +50,7 @@ inductive Term (Var : Type u)
 def Ty.open_tt_rec (K : ℕ) (U T : Ty Var) : Ty Var :=
   match T with
   | top => top
-  | bvar J => if K == J then U else (bvar J)
+  | bvar J => if K = J then U else (bvar J)
   | fvar X => fvar X
   | arrow T1 T2 => arrow (open_tt_rec K U T1) (open_tt_rec K U T2)
   | all T1 T2 => all (open_tt_rec K U T1) (open_tt_rec (K + 1) U T2)
@@ -72,7 +72,7 @@ def Term.open_te_rec (K : ℕ) (U : Ty Var) (e : Term Var) : Term Var :=
 
 def Term.open_ee_rec (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
   match e with
-  | bvar i => if k == i then f else (bvar i)
+  | bvar i => if k = i then f else (bvar i)
   | fvar x => fvar x
   | abs V e1 => abs V (open_ee_rec (k + 1) f e1)
   | app e1 e2 => app (open_ee_rec k f e1) (open_ee_rec k f e2)
@@ -213,7 +213,7 @@ def Term.fv_tm : Term Var → Finset Var
 def Ty.subst (Z : Var) (U : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar J => bvar J
-| fvar X => if X == Z then U else fvar X
+| fvar X => if X = Z then U else fvar X
 | arrow T1 T2 => arrow (subst Z U T1) (subst Z U T2)
 | all T1 T2 => all (subst Z U T1) (subst Z U T2)
 | sum T1 T2 => sum (subst Z U T1) (subst Z U T2)
@@ -232,7 +232,7 @@ def Term.subst_ty (Z : Var) (U : Ty Var) : Term Var → Term Var
 
 def Term.subst_tm (z : Var) (u : Term Var) : Term Var → Term Var
 | bvar i => bvar i
-| fvar x => if x == z then u else fvar x
+| fvar x => if x = z then u else fvar x
 | abs V e1 => abs V (subst_tm z u e1)
 | app e1 e2 => app (subst_tm z u e1) (subst_tm z u e2)
 | tabs V e1 => tabs V (subst_tm z u e1)
