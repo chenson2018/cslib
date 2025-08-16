@@ -190,4 +190,60 @@ inductive Term.Red : Term Var → Term Var → Prop
   | case_inl : Value v1 → e2.body → e3.body → Red (case (inl v1) e2 e3) (open_ee e2 v1)
   | case_inr : Value v1 → e2.body → e3.body → Red (case (inr v1) e2 e3) (open_ee e3 v1)
 
+def Ty.fv : Ty Var → Finset Var
+| top | bvar _ => {}
+| fvar X => {X}
+| arrow T1 T2 | all T1 T2 | sum T1 T2 => T1.fv ∪ T2.fv
+
+def Term.fv_ty : Term Var → Finset Var
+| bvar _ | fvar _ => {}
+| abs V e1 | tabs V e1 | tapp e1 V => V.fv ∪ e1.fv_ty
+| app e1 e2 | let' e1 e2 => e1.fv_ty ∪ e2.fv_ty
+| inl e1 | inr e1 => e1.fv_ty
+| case e1 e2 e3 => e1.fv_ty ∪ e2.fv_ty ∪ e3.fv_ty
+
+def Term.fv_tm : Term Var → Finset Var
+| bvar _ => {}
+| fvar x => singleton x
+| abs _ e1 | tabs _ e1 | tapp e1 _ => e1.fv_tm
+| app e1 e2 | let' e1 e2 => e1.fv_tm ∪ e2.fv_tm
+| inl e1 | inr e1 => e1.fv_tm
+| case e1 e2 e3 => e1.fv_tm ∪ e2.fv_tm ∪ e3.fv_tm
+
+def Ty.subst (Z : Var) (U : Ty Var) : Ty Var → Ty Var
+| top => top
+| bvar J => bvar J
+| fvar X => if X == Z then U else fvar X
+| arrow T1 T2 => arrow (subst Z U T1) (subst Z U T2)
+| all T1 T2 => all (subst Z U T1) (subst Z U T2)
+| sum T1 T2 => sum (subst Z U T1) (subst Z U T2)
+
+def Term.subst_ty (Z : Var) (U : Ty Var) : Term Var → Term Var
+| bvar i => bvar i
+| fvar x => fvar x
+| abs V e1 => abs (Ty.subst Z U V) (subst_ty Z U e1)
+| app e1 e2 => app (subst_ty Z U e1) (subst_ty Z U e2)
+| tabs V e1 => tabs (Ty.subst Z U V) (subst_ty Z U e1)
+| tapp e1 V => tapp (subst_ty Z U e1) (Ty.subst Z U V)
+| let' e1 e2 => let' (subst_ty Z U e1) (subst_ty Z U e2)
+| inl e1 => inl (subst_ty Z U e1)
+| inr e1 => inr (subst_ty Z U e1)
+| case e1 e2 e3 => case (subst_ty Z U e1) (subst_ty Z U e2) (subst_ty Z U e3)
+
+def Term.subst_tm (z : Var) (u : Term Var) : Term Var → Term Var
+| bvar i => bvar i
+| fvar x => if x == z then u else fvar x
+| abs V e1 => abs V (subst_tm z u e1)
+| app e1 e2 => app (subst_tm z u e1) (subst_tm z u e2)
+| tabs V e1 => tabs V (subst_tm z u e1)
+| tapp e1 V => tapp (subst_tm z u e1) V
+| let' e1 e2 => let' (subst_tm z u e1) (subst_tm z u e2)
+| inl e1 => inl (subst_tm z u e1)
+| inr e1 => inr (subst_tm z u e1)
+| case e1 e2 e3 => case (subst_tm z u e1) (subst_tm z u e2) (subst_tm z u e3)
+
+def Binding.subst (Z : Var) (P : Ty Var) : Binding Var → Binding Var
+| sub T => sub (Ty.subst Z P T)
+| ty  T => ty  (Ty.subst Z P T)
+
 end LambdaCalculus.LocallyNameless.Fsub
