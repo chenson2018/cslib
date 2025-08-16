@@ -24,29 +24,18 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-attribute [simp] Ty.open_tt_rec
+omit [HasFresh Var] [DecidableEq Var] in
+ /-- An opening appearing in both sides of an equality of terms can be removed. -/
+@[grind]
+lemma Ty.open_lc_aux (T : Ty Var) j V i U (neq : i ≠ j) (h : T⟦j ↝ V⟧ = (T⟦j ↝ V⟧)⟦i ↝ U⟧) : 
+    T = T⟦i ↝ U⟧ := by induction T generalizing j i <;> grind
 
-lemma Ty.open_tt_rec_type_aux : forall (T : Ty Var) j V i U,
-  i ≠ j ->
-  open_tt_rec j V T = open_tt_rec i U (open_tt_rec j V T) ->
-  T = open_tt_rec i U T := by
-  intros T
-  induction T <;> intros j V i U neq H
-  case bvar i' => 
-    by_cases eq : i = i' <;> [subst eq; skip] <;> simp_all only [neq.symm, open_tt_rec, reduceIte]
-  case arrow l r ih_l ih_r => 
-    simp only [open_tt_rec, arrow.injEq] at *
-    have ⟨Hl, Hr⟩ := H 
-    exact ⟨ih_l j V i U neq Hl, ih_r j V i U neq Hr⟩
-  case all l r ih_l ih_r =>
-    simp only [open_tt_rec, all.injEq] at *
-    have ⟨Hl, Hr⟩ := H 
-    refine ⟨ih_l j V i U neq Hl, ih_r (j + 1) V (i + 1) U (by grind) Hr⟩
-  case sum l r ih_l ih_r => 
-    simp only [open_tt_rec, sum.injEq] at *
-    have ⟨Hl, Hr⟩ := H 
-    exact ⟨ih_l j V i U neq Hl, ih_r j V i U neq Hr⟩
-  case top => simp only [open_tt_rec]
-  case fvar => simp only [open_tt_rec]
+lemma Ty.open_lc (T : Ty Var) U k (lc : T.LC) : T = T⟦k ↝ U⟧ := by
+  induction lc generalizing k
+  case all => 
+    -- TODO: how to tell grind to try `free_union`?
+    let ⟨x, _⟩ := fresh_exists <| free_union (free := fv) Var
+    grind
+  all_goals grind
 
 end LambdaCalculus.LocallyNameless.Fsub

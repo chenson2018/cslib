@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 import Cslib.Data.HasFresh
 import Cslib.Syntax.HasSubstitution
-import Cslib.Computability.LambdaCalculus.LocallyNameless.Untyped.AesopRuleset
 import Cslib.Computability.LambdaCalculus.LocallyNameless.Context
 
 /-! # λ-calculus
@@ -27,49 +26,97 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
+/-- Types of the polymorphic lambda calculus. -/
 inductive Ty (Var : Type u)
+  /-- The type ⊤, with a single inhabitant. -/
   | top : Ty Var
+  /-- Bound variables that appear in a type, using a de-Bruijn index. -/
   | bvar : ℕ → Ty Var
+  /-- Free type variables. -/
   | fvar : Var → Ty Var
+  /-- A function type. -/
   | arrow : Ty Var → Ty Var → Ty Var
+  /-- A universal quantification. -/
   | all : Ty Var → Ty Var → Ty Var
+  /-- A sum type. -/
   | sum : Ty Var → Ty Var → Ty Var
 
+/-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
+  /-- Bound term variables that appear under a lambda abstraction, using a de-Bruijn index. -/
   | bvar : ℕ → Term Var
+  /-- Free term variables. -/
   | fvar : Var → Term Var
+  /-- Lambda abstraction, introducing a new bound term variable. -/
   | abs : Ty Var → Term Var → Term Var
+  /-- Function application. -/
   | app : Term Var → Term Var → Term Var
+  /-- Type abstraction, introducing a new bound type variable. -/
   | tabs : Ty Var → Term Var → Term Var
+  /-- Type application. -/
   | tapp : Term Var → Ty Var → Term Var
+  /-- Binding of a term. -/
   | let' : Term Var → Term Var → Term Var
+  /-- Left constructor of a sum. -/
   | inl : Term Var → Term Var
+  /-- Right constructor of a sum. -/
   | inr : Term Var → Term Var
+  /-- Case matching on a sum. -/
   | case : Term Var → Term Var → Term Var → Term Var
 
-def Ty.open_tt_rec (K : ℕ) (U T : Ty Var) : Ty Var :=
-  match T with
-  | top => top
-  | bvar J => if K = J then U else (bvar J)
-  | fvar X => fvar X
-  | arrow T1 T2 => arrow (open_tt_rec K U T1) (open_tt_rec K U T2)
-  | all T1 T2 => all (open_tt_rec K U T1) (open_tt_rec (K + 1) U T2)
-  | sum T1 T2 => sum (open_tt_rec K U T1) (open_tt_rec K U T2)
+/-- Variable opening (type opening to type) of the ith bound variable. -/
+def Ty.openRec (K : ℕ) (U : Ty Var) : Ty Var → Ty Var
+| top => top
+| bvar J => if K = J then U else bvar J
+| fvar X => fvar X
+| arrow T1 T2 => arrow (openRec K U T1) (openRec K U T2)
+| all T1 T2 => all (openRec K U T1) (openRec (K + 1) U T2)
+| sum T1 T2 => sum (openRec K U T1) (openRec K U T2)
 
-def Term.open_te_rec (K : ℕ) (U : Ty Var) (e : Term Var) : Term Var :=
-  match e with
-  | bvar i => bvar i
-  | fvar x => fvar x
-  | abs V e1 => abs (Ty.open_tt_rec K U V) (open_te_rec K U e1)
-  | app e1 e2 => app (open_te_rec K U e1) (open_te_rec K U e2)
-  | tabs V e1 => tabs (Ty.open_tt_rec K U V) (open_te_rec (K + 1) U e1)
-  | tapp e1 V => tapp (open_te_rec K U e1) (Ty.open_tt_rec K U V)
-  | let' e1 e2 => let' (open_te_rec K U e1) (open_te_rec K U e2)
-  | inl e1 => inl (open_te_rec K U e1)
-  | inr e2 => inr (open_te_rec K U e2)
-  | case e1 e2 e3 =>
-      case (open_te_rec K U e1) (open_te_rec K U e2) (open_te_rec K U e3)
+scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Ty.openRec i sub e
 
+@[grind =]
+lemma Ty.openRec_top : top⟦i ↝ s⟧ = top := by rfl
+
+@[grind =]
+lemma Ty.openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else (bvar i') := by rfl
+
+@[grind =]
+lemma Ty.openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
+
+@[grind =]
+lemma Ty.openRec_arrow : (arrow T1 T2)⟦i ↝ s⟧ = arrow (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
+
+@[grind =]
+lemma Ty.openRec_all : (all T1 T2)⟦i ↝ s⟧ = all (T1⟦i ↝ s⟧) (T2⟦i + 1 ↝ s⟧) := by rfl
+
+@[grind =]
+lemma Ty.openRec_sum : (sum T1 T2)⟦i ↝ s⟧ = sum (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
+
+/-- Variable opening (type opening to type) of the closest binding. -/
+def Ty.open' (T U : Ty Var) := Ty.openRec 0 U T
+
+-- TODO: equation lemma here???
+scoped infixr:80 " ^ " => Ty.open'
+
+@[grind =]
+theorem Ty.open'_eq : e ^ s = e⟦0 ↝ s⟧ := by rfl
+
+/-- Variable opening (term opening to type) of the ith bound variable. -/
+def Term.openRec_ty (K : ℕ) (U : Ty Var) : Term Var → Term Var
+| bvar i => bvar i
+| fvar x => fvar x
+| abs V e1 => abs (V⟦K ↝ U⟧) (openRec_ty K U e1)
+| app e1 e2 => app (openRec_ty K U e1) (openRec_ty K U e2)
+| tabs V e1 => tabs (V⟦K ↝ U⟧) (openRec_ty (K + 1) U e1)
+| tapp e1 V => tapp (openRec_ty K U e1) (V⟦K ↝ U⟧)
+| let' e1 e2 => let' (openRec_ty K U e1) (openRec_ty K U e2)
+| inl e1 => inl (openRec_ty K U e1)
+| inr e2 => inr (openRec_ty K U e2)
+| case e1 e2 e3 =>
+    case (openRec_ty K U e1) (openRec_ty K U e2) (openRec_ty K U e3)
+
+/-- Variable opening (term opening to term) of the ith bound variable. -/
 def Term.open_ee_rec (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
   match e with
   | bvar i => if k = i then f else (bvar i)
@@ -86,15 +133,14 @@ def Term.open_ee_rec (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
                (open_ee_rec (k + 1) f e2)
                (open_ee_rec (k + 1) f e3)
 
-def open_tt (T U : Ty Var) := Ty.open_tt_rec 0 U T
-def open_te (e : Term Var) U := Term.open_te_rec 0 U e
+def open_te (e : Term Var) U := Term.openRec_ty 0 U e
 def open_ee (e1 e2 : Term Var) := Term.open_ee_rec 0 e2 e1
 
 inductive Ty.LC : Ty Var → Prop
   | top : LC top
   | var : LC (fvar X)
   | arrow : LC T1 → LC T2 → LC (arrow T1 T2)
-  | all (L : Finset Var) : LC T1 → (∀ X ∉ L, LC (open_tt T2 (fvar X))) → LC (all T1 T2)
+  | all (L : Finset Var) : LC T1 → (∀ X ∉ L, LC (Ty.open' T2 (fvar X))) → LC (all T1 T2)
   | sum :LC T1 → LC T2 → LC (sum T1 T2)
 
 inductive Term.LC : Term Var → Prop
@@ -126,7 +172,7 @@ inductive Ty.wf : Env Var → Ty Var → Prop
   | arrow : wf E T1 → wf E T2 → wf E (arrow T1 T2)
   | all (L : Finset Var) : 
       wf E T1 →
-      (∀ X ∉ L, wf ([⟨X,Binding.sub T1⟩] ++ E) (open_tt T2 (fvar X))) →
+      (∀ X ∉ L, wf ([⟨X,Binding.sub T1⟩] ++ E) (Ty.open' T2 (fvar X))) →
       wf E (all T1 T2)
   | sum : wf E T1 → wf E T2 → wf E (sum T1 T2)
 
@@ -142,7 +188,7 @@ inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
   | arrow : Sub E T1 S1 → Sub E S2 T2 → Sub E (arrow S1 S2) (arrow T1 T2)
   | all (L : Finset Var) :
       Sub E T1 S1 →
-      (∀ X ∉ L, Sub ([⟨X, Binding.sub T1⟩] ++ E) (open_tt S2 (fvar X)) (open_tt T2 (fvar X))) →
+      (∀ X ∉ L, Sub ([⟨X, Binding.sub T1⟩] ++ E) (Ty.open' S2 (fvar X)) (Ty.open' T2 (fvar X))) →
       Sub E (all S1 S2) (all T1 T2)
   | sum : Sub E S1 T1 → Sub E S2 T2 → Sub E (sum S1 S2) (sum T1 T2)
 
@@ -154,9 +200,9 @@ inductive Typing : Env Var → Term Var → Ty Var → Prop
       Typing E (abs V e1) (arrow V T1)
   | app : Typing E e1 (arrow T1 T2) → Typing E e2 T1 → Typing E (app e1 e2) T2
   | tabs (L : Finset Var) :
-      (∀ X ∉ L, Typing ([⟨X, Binding.sub V⟩] ++ E) (open_te e1 (fvar X)) (open_tt T1 (fvar X))) →
+      (∀ X ∉ L, Typing ([⟨X, Binding.sub V⟩] ++ E) (open_te e1 (fvar X)) (Ty.open' T1 (fvar X))) →
       Typing E (tabs V e1) (all V T1)
-  | tapp : Typing E e1 (all T1 T2) → Sub E T T1 → Typing E (tapp e1 T) (open_tt T2 T)
+  | tapp : Typing E e1 (all T1 T2) → Sub E T T1 → Typing E (tapp e1 T) (Ty.open' T2 T)
   | sub : Typing E e S → Sub E S T → Typing E e T
   | let' (L : Finset Var) :
       Typing E e1 T1 →
