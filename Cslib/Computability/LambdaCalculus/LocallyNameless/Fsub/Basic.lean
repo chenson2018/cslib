@@ -337,12 +337,14 @@ inductive Term.Red : Term Var → Term Var → Prop
 
 
 /-- Free variables of a type. -/
+@[grind =]
 def Ty.fv : Ty Var → Finset Var
 | top | bvar _ => {}
 | fvar X => {X}
 | arrow T1 T2 | all T1 T2 | sum T1 T2 => T1.fv ∪ T2.fv
 
 /-- Free type variables of a term. -/
+@[grind =]
 def Term.fv_ty : Term Var → Finset Var
 | bvar _ | fvar _ => {}
 | abs V e1 | tabs V e1 | tapp e1 V => V.fv ∪ e1.fv_ty
@@ -351,6 +353,7 @@ def Term.fv_ty : Term Var → Finset Var
 | case e1 e2 e3 => e1.fv_ty ∪ e2.fv_ty ∪ e3.fv_ty
 
 /-- Free term variables of a term. -/
+@[grind =]
 def Term.fv_tm : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => singleton x
