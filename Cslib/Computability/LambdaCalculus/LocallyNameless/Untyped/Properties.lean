@@ -103,7 +103,7 @@ lemma open_lc (k t) (e : Term Var) : e.LC → e = e⟦k ↝ t⟧ := by
   all_goals aesop
 
 /-- Substitution of a locally closed term distributes with opening. -/
-lemma subst_open (x : Var) (t : Term Var) (k : ℕ) (u e) :
+lemma subst_open (x : Var) (t : Term Var) (k : ℕ) (u e : Term Var) :
   LC t → 
   (e ⟦ k ↝ u ⟧) [ x := t ] = (e [ x := t ]) ⟦k ↝  u [ x := t ]⟧ := by
   revert k

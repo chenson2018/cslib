@@ -106,12 +106,12 @@ def subst (m : Term Var) (x : Var) (sub : Term Var) : Term Var :=
   | abs M   => abs <| M.subst x sub
 
 /-- `Term.subst` is a substitution for λ-terms. Gives access to the notation `m[x := n]`. -/
-instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var where
+instance instHasSubstitutionTerm : HasSubstitution (Term Var) Var (Term Var) where
   subst := Term.subst
 
 omit [HasFresh Var] in
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_bvar {n : Term Var} : (bvar i)[x := n] = bvar i := by rfl
+lemma subst_bvar {n : Term Var} : (bvar i : Term Var)[x := n] = bvar i := by rfl
 
 omit [HasFresh Var] in
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
@@ -119,11 +119,11 @@ lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
 
 omit [HasFresh Var] in
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_app {l r : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
+lemma subst_app {l r n : Term Var} : (app l r)[x := n] = app (l[x := n]) (r[x := n]) := by rfl
 
 omit [HasFresh Var] in
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
-lemma subst_abs {M : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
+lemma subst_abs {M n : Term Var} : M.abs[x := n] = M[x := n].abs := by rfl
 
 omit [HasFresh Var] in
 @[aesop norm (rule_sets := [LambdaCalculus.LocallyNameless.ruleSet])]
