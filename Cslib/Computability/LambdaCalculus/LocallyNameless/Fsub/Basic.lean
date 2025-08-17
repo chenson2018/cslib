@@ -223,6 +223,7 @@ def Term.open_tm (e1 e2 : Term Var) := Term.openRec_tm 0 e2 e1
 scoped infixr:80 " ^ " => Term.open_tm
 
 /-- Locally closed types. -/
+@[grind cases]
 inductive Ty.LC : Ty Var → Prop
   | top : LC top
   | var : LC (fvar X)
@@ -231,6 +232,7 @@ inductive Ty.LC : Ty Var → Prop
   | sum :LC T1 → LC T2 → LC (sum T1 T2)
 
 /-- Locally closed terms. -/
+@[grind cases]
 inductive Term.LC : Term Var → Prop
   | var : LC (fvar x)
   | abs (L : Finset Var) : T.LC → (∀ x ∉ L, LC (e1 ^ fvar x)) → LC (abs T e1)
@@ -498,6 +500,18 @@ lemma Term.subst_tm_inr : (inr e1 : Term Var)[x := n] = inr (e1[x := n]) := by r
 
 lemma Term.subst_tm_case : 
     (case e1 e2 e3 : Term Var)[x := n] = case (e1[x := n]) (e2[x := n]) (e3[x := n]) := by rfl
+
+attribute [grind =]
+  Term.subst_tm_bvar
+  Term.subst_tm_fvar
+  Term.subst_tm_abs
+  Term.subst_tm_app
+  Term.subst_tm_tabs
+  Term.subst_tm_tapp
+  Term.subst_tm_let'
+  Term.subst_tm_inl
+  Term.subst_tm_inr
+  Term.subst_tm_case
 
 end
 

@@ -72,4 +72,19 @@ lemma Ty.open_subst_intro (X : Var) (T2 U : Ty Var) (nmem : X ∉ T2.fv) :
   apply openRec_subst_intro
   grind
 
+omit [HasFresh Var] [DecidableEq Var] in
+lemma Term.openRec_ty_lc_aux₁ (e : Term Var) j (u : Term Var) i (P : Ty Var) 
+    (eq : e⟦j ↝ u⟧ = e⟦j ↝ u⟧⟦i ↝ P⟧) : e = e⟦i ↝ P⟧
+  := by induction e generalizing j i <;> grind [Term.openRec_ty]
+
+omit [HasFresh Var] [DecidableEq Var] in
+lemma Term.openRec_ty_lc_aux₂ (e : Term Var) j (Q : Term Var) i (P : Ty Var) : 
+    i ≠ j → e⟦j ↝ Q⟧ = e⟦j ↝ Q⟧⟦i ↝ P⟧ → e = e⟦i ↝ P⟧ := by
+  induction e <;> grind [Term.openRec_ty_lc_aux₁]
+
+lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k ↝ U⟧ := sorry
+
+lemma Term.subst_ty_fresh (X : Var) (U : Ty Var) (e : Term Var) (nmem : X ∉ e.fv_ty) : 
+    e = e [X := U] := sorry
+
 end LambdaCalculus.LocallyNameless.Fsub
