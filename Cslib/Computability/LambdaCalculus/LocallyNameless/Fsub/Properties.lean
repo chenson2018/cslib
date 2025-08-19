@@ -72,19 +72,41 @@ lemma Ty.open_subst_intro (X : Var) (T2 U : Ty Var) (nmem : X ∉ T2.fv) :
   apply openRec_subst_intro
   grind
 
+-- TODO: if I make this local, it fails...
 omit [HasFresh Var] [DecidableEq Var] in
+--@[local grind =>]
+@[grind =>]
 lemma Term.openRec_ty_lc_aux₁ (e : Term Var) j (u : Term Var) i (P : Ty Var) 
     (eq : e⟦j ↝ u⟧ = e⟦j ↝ u⟧⟦i ↝ P⟧) : e = e⟦i ↝ P⟧
-  := by induction e generalizing j i <;> grind [Term.openRec_ty]
+  := by induction e generalizing j i <;> grind
 
 omit [HasFresh Var] [DecidableEq Var] in
+@[local grind]
 lemma Term.openRec_ty_lc_aux₂ (e : Term Var) j (Q : Term Var) i (P : Ty Var) : 
     i ≠ j → e⟦j ↝ Q⟧ = e⟦j ↝ Q⟧⟦i ↝ P⟧ → e = e⟦i ↝ P⟧ := by
-  induction e <;> grind [Term.openRec_ty_lc_aux₁]
+  induction e <;> grind 
 
-lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k ↝ U⟧ := sorry
+lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k ↝ U⟧ := by
+  induction e generalizing k
+  case abs T t ih =>
+    simp [openRec_ty]
+    refine ⟨by grind, ?_⟩
+    cases e_lc with | abs L T_lc cofin =>
+    have ⟨x, free⟩ := fresh_exists L
+    --rw [←openRec_ty_lc_aux₁ (j := 0) (u := fvar x)]
+    --rw [←openRec_ty_lc_aux₂ (j := 0) (Q := fvar x)]
+    sorry    
+  case tabs => sorry
+  case let' => sorry
+  case case => sorry
+  all_goals grind
 
 lemma Term.subst_ty_fresh (X : Var) (U : Ty Var) (e : Term Var) (nmem : X ∉ e.fv_ty) : 
-    e = e [X := U] := sorry
+    e = e [X := U] := by
+  induction e
+  case fvar X' =>
+    -- TODO: make grind do this... something with notation?? a grind I missed???
+    rfl
+  all_goals grind [Ty.subst_fresh]
 
 end LambdaCalculus.LocallyNameless.Fsub

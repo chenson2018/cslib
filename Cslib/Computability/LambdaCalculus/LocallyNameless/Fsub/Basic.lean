@@ -65,6 +65,7 @@ inductive Term (Var : Type u)
   | case : Term Var → Term Var → Term Var → Term Var
 
 /-- Variable opening (type opening to type) of the ith bound variable. -/
+@[grind =]
 def Ty.openRec (K : ℕ) (U : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar J => if K = J then U else bvar J
@@ -91,6 +92,7 @@ attribute [grind =]
   Ty.openRec_top Ty.openRec_bvar Ty.openRec_fvar Ty.openRec_arrow Ty.openRec_all Ty.openRec_sum
 
 /-- Variable opening (type opening to type) of the closest binding. -/
+@[grind =]
 def Ty.open' (T U : Ty Var) := Ty.openRec 0 U T
 
 scoped infixr:80 " ^ " => Ty.open'
@@ -99,6 +101,7 @@ scoped infixr:80 " ^ " => Ty.open'
 theorem Ty.open'_eq : e ^ s = e⟦0 ↝ s⟧ := by rfl
 
 /-- Variable opening (term opening to type) of the ith bound variable. -/
+@[grind =]
 def Term.openRec_ty (K : ℕ) (U : Ty Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => fvar x
@@ -149,6 +152,7 @@ attribute [grind =]
   Term.openRec_ty_case
 
 /-- Variable opening (term opening to type) of the closest binding. -/
+@[grind =]
 def Term.open_ty (e : Term Var) U := Term.openRec_ty 0 U e
 
 scoped infixr:80 " ^ " => Term.open_ty
@@ -158,6 +162,7 @@ omit [HasFresh Var] [DecidableEq Var] in
 theorem Term.open_ty_eq {e : Term Var} : e ^ s = e⟦0 ↝ s⟧ := by rfl
 
 /-- Variable opening (term opening to term) of the ith bound variable. -/
+@[grind =]
 def Term.openRec_tm (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
   match e with
   | bvar i => if k = i then f else (bvar i)
@@ -218,6 +223,7 @@ attribute [grind =]
 end
 
 /-- Variable opening (term opening to term) of the closest binding. -/
+@[grind =]
 def Term.open_tm (e1 e2 : Term Var) := Term.openRec_tm 0 e2 e1
 
 scoped infixr:80 " ^ " => Term.open_tm
@@ -394,12 +400,15 @@ lemma Ty.subst_all : (all T1 T2 : Ty Var)[x := n] = all (T1[x := n]) (T2[x := n]
 
 lemma Ty.subst_sum : (sum T1 T2 : Ty Var)[x := n] = sum (T1[x := n]) (T2[x := n]) := by rfl
 
+lemma Ty.subst_def : Ty.subst (x : Var) (n : Ty Var) (m : Ty Var) = m[x := n] := by rfl
+
 attribute [grind =] 
-  Ty.subst_top Ty.subst_bvar Ty.subst_fvar Ty.subst_arrow Ty.subst_all Ty.subst_sum
+  Ty.subst_top Ty.subst_bvar Ty.subst_fvar Ty.subst_arrow Ty.subst_all Ty.subst_sum Ty.subst_def
 
 end
 
 /-- Term substitution of types. -/
+@[grind =]
 def Term.subst_ty (Z : Var) (U : Ty Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => fvar x
@@ -443,6 +452,8 @@ lemma Term.subst_ty_inr : (inr e1 : Term Var)[x := n] = inr (e1[x := n]) := by r
 lemma Term.subst_ty_case : 
     (case e1 e2 e3 : Term Var)[x := n] = case (e1[x := n]) (e2[x := n]) (e3[x := n]) := by rfl
 
+lemma Term.subst_ty_def : Term.subst_ty (x : Var) (n : Ty Var) (m : Term Var) = m[x := n] := by rfl
+
 attribute [grind =]
   Term.subst_ty_bvar
   Term.subst_ty_fvar
@@ -454,10 +465,12 @@ attribute [grind =]
   Term.subst_ty_inl
   Term.subst_ty_inr
   Term.subst_ty_case
+  Term.subst_ty_def
 
 end
 
 /-- Term substitution of terms. -/
+@[grind =]
 def Term.subst_tm (z : Var) (u : Term Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => if x = z then u else fvar x
@@ -501,6 +514,9 @@ lemma Term.subst_tm_inr : (inr e1 : Term Var)[x := n] = inr (e1[x := n]) := by r
 lemma Term.subst_tm_case : 
     (case e1 e2 e3 : Term Var)[x := n] = case (e1[x := n]) (e2[x := n]) (e3[x := n]) := by rfl
 
+lemma Term.subst_tm_def : Term.subst_tm (x : Var) (n : Term Var) (m : Term Var) = m[x := n] := 
+  by rfl
+
 attribute [grind =]
   Term.subst_tm_bvar
   Term.subst_tm_fvar
@@ -512,6 +528,7 @@ attribute [grind =]
   Term.subst_tm_inl
   Term.subst_tm_inr
   Term.subst_tm_case
+  Term.subst_tm_def
 
 end
 
