@@ -124,7 +124,9 @@ lemma closeRec_app : (app l r)⟦k ↜ x⟧ = app (l⟦k ↜ x⟧) (r⟦k ↜ x�
 
 lemma closeRec_abs : t.abs⟦k ↜ x⟧ = t⟦k + 1 ↜ x⟧.abs := by rfl
 
-lemma subst_bvar {n : Term Var} : (bvar i)[x := n] = bvar i := by rfl
+variable {x : Var} {n : Term Var}
+
+lemma subst_bvar : (bvar i : Term Var)[x := n] = bvar i := by rfl
 
 lemma subst_fvar : (fvar x')[x := n] = if x = x' then n else fvar x' := by rfl
 
