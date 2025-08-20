@@ -65,7 +65,7 @@ inductive Term (Var : Type u)
   | case : Term Var → Term Var → Term Var → Term Var
 
 /-- Variable opening (type opening to type) of the ith bound variable. -/
-@[grind =]
+@[scoped grind =]
 def Ty.openRec (K : ℕ) (U : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar J => if K = J then U else bvar J
@@ -74,95 +74,77 @@ def Ty.openRec (K : ℕ) (U : Ty Var) : Ty Var → Ty Var
 | all T1 T2 => all (openRec K U T1) (openRec (K + 1) U T2)
 | sum T1 T2 => sum (openRec K U T1) (openRec K U T2)
 
-scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Ty.openRec i sub e
+scoped notation:68 e "⟦" i " ↝ " sub "⟧ᵞ"=> Ty.openRec i sub e
 
-lemma Ty.openRec_top : top⟦i ↝ s⟧ = top := by rfl
+lemma Ty.openRec_top : top⟦i ↝ s⟧ᵞ = top := by rfl
 
-lemma Ty.openRec_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else (bvar i') := by rfl
+lemma Ty.openRec_bvar : (bvar i')⟦i ↝ s⟧ᵞ = if i = i' then s else (bvar i') := by rfl
 
-lemma Ty.openRec_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
+lemma Ty.openRec_fvar : (fvar x)⟦i ↝ s⟧ᵞ = fvar x := by rfl
 
-lemma Ty.openRec_arrow : (arrow T1 T2)⟦i ↝ s⟧ = arrow (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
+lemma Ty.openRec_arrow : (arrow T1 T2)⟦i ↝ s⟧ᵞ = arrow (T1⟦i ↝ s⟧ᵞ) (T2⟦i ↝ s⟧ᵞ) := by rfl
 
-lemma Ty.openRec_all : (all T1 T2)⟦i ↝ s⟧ = all (T1⟦i ↝ s⟧) (T2⟦i + 1 ↝ s⟧) := by rfl
+lemma Ty.openRec_all : (all T1 T2)⟦i ↝ s⟧ᵞ = all (T1⟦i ↝ s⟧ᵞ) (T2⟦i + 1 ↝ s⟧ᵞ) := by rfl
 
-lemma Ty.openRec_sum : (sum T1 T2)⟦i ↝ s⟧ = sum (T1⟦i ↝ s⟧) (T2⟦i ↝ s⟧) := by rfl
-
-attribute [grind =] 
-  Ty.openRec_top Ty.openRec_bvar Ty.openRec_fvar Ty.openRec_arrow Ty.openRec_all Ty.openRec_sum
+lemma Ty.openRec_sum : (sum T1 T2)⟦i ↝ s⟧ᵞ = sum (T1⟦i ↝ s⟧ᵞ) (T2⟦i ↝ s⟧ᵞ) := by rfl
 
 /-- Variable opening (type opening to type) of the closest binding. -/
-@[grind =]
+@[scoped grind =]
 def Ty.open' (T U : Ty Var) := Ty.openRec 0 U T
 
-scoped infixr:80 " ^ " => Ty.open'
+scoped infixr:80 " ^ᵞ " => Ty.open'
 
-@[grind =]
-theorem Ty.open'_eq : e ^ s = e⟦0 ↝ s⟧ := by rfl
+theorem Ty.open'_eq : e ^ᵞ s = e⟦0 ↝ s⟧ᵞ := by rfl
 
 /-- Variable opening (term opening to type) of the ith bound variable. -/
-@[grind =]
+@[scoped grind =]
 def Term.openRec_ty (K : ℕ) (U : Ty Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => fvar x
-| abs V e1 => abs (V⟦K ↝ U⟧) (openRec_ty K U e1)
+| abs V e1 => abs (V⟦K ↝ U⟧ᵞ) (openRec_ty K U e1)
 | app e1 e2 => app (openRec_ty K U e1) (openRec_ty K U e2)
-| tabs V e1 => tabs (V⟦K ↝ U⟧) (openRec_ty (K + 1) U e1)
-| tapp e1 V => tapp (openRec_ty K U e1) (V⟦K ↝ U⟧)
+| tabs V e1 => tabs (V⟦K ↝ U⟧ᵞ) (openRec_ty (K + 1) U e1)
+| tapp e1 V => tapp (openRec_ty K U e1) (V⟦K ↝ U⟧ᵞ)
 | let' e1 e2 => let' (openRec_ty K U e1) (openRec_ty K U e2)
 | inl e1 => inl (openRec_ty K U e1)
 | inr e2 => inr (openRec_ty K U e2)
 | case e1 e2 e3 =>
     case (openRec_ty K U e1) (openRec_ty K U e2) (openRec_ty K U e3)
 
-scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec_ty i sub e
+scoped notation:68 e "⟦" i " ↝ " sub "⟧ᵗᵞ"=> Term.openRec_ty i sub e
 
-lemma Term.openRec_ty_bvar : (bvar i)⟦i ↝ s⟧ = bvar i := by rfl
+lemma Term.openRec_ty_bvar : (bvar i)⟦i ↝ s⟧ᵗᵞ = bvar i := by rfl
 
-lemma Term.openRec_ty_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
+lemma Term.openRec_ty_fvar : (fvar x)⟦i ↝ s⟧ᵗᵞ = fvar x := by rfl
 
-lemma Term.openRec_ty_abs : (abs V e1)⟦i ↝ s⟧ = abs (V⟦i ↝ s⟧) (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_abs : (abs V e1)⟦i ↝ s⟧ᵗᵞ = abs (V⟦i ↝ s⟧ᵞ) (e1⟦i ↝ s⟧ᵗᵞ) := by rfl
 
-lemma Term.openRec_ty_app : (app e1 e2)⟦i ↝ s⟧ = app (e1⟦i ↝ s⟧) (e2⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_app : (app e1 e2)⟦i ↝ s⟧ᵗᵞ = app (e1⟦i ↝ s⟧ᵗᵞ) (e2⟦i ↝ s⟧ᵗᵞ) := by rfl
 
-lemma Term.openRec_ty_tabs : (tabs V e1)⟦i ↝ s⟧ = tabs (V⟦i ↝ s⟧) (e1⟦i + 1 ↝ s⟧) := by rfl
+lemma Term.openRec_ty_tabs : (tabs V e1)⟦i ↝ s⟧ᵗᵞ = tabs (V⟦i ↝ s⟧ᵞ) (e1⟦i + 1 ↝ s⟧ᵗᵞ) := by rfl
 
-lemma Term.openRec_ty_tapp : (tapp e1 V)⟦i ↝ s⟧ = tapp (e1⟦i ↝ s⟧) (V⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_tapp : (tapp e1 V)⟦i ↝ s⟧ᵗᵞ = tapp (e1⟦i ↝ s⟧ᵗᵞ) (V⟦i ↝ s⟧ᵞ) := by rfl
 
-lemma Term.openRec_ty_let' : (let' e1 e2)⟦i ↝ s⟧ = let' (e1⟦i ↝ s⟧) (e2⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_let' : (let' e1 e2)⟦i ↝ s⟧ᵗᵞ = let' (e1⟦i ↝ s⟧ᵗᵞ) (e2⟦i ↝ s⟧ᵗᵞ) := by rfl
 
-lemma Term.openRec_ty_inl : (inl e1)⟦i ↝ s⟧ = inl (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_inl : (inl e1)⟦i ↝ s⟧ᵗᵞ = inl (e1⟦i ↝ s⟧ᵗᵞ) := by rfl
 
-lemma Term.openRec_ty_inr : (inr e1)⟦i ↝ s⟧ = inr (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_ty_inr : (inr e1)⟦i ↝ s⟧ᵗᵞ = inr (e1⟦i ↝ s⟧ᵗᵞ) := by rfl
 
 lemma Term.openRec_ty_case : 
-    (case e1 e2 e3)⟦i ↝ s⟧ = case (e1⟦i ↝ s⟧) (e2⟦i ↝ s⟧) (e3⟦i ↝ s⟧) := by rfl
-
-attribute [grind =]
-  Term.openRec_ty_bvar
-  Term.openRec_ty_fvar
-  Term.openRec_ty_abs
-  Term.openRec_ty_app
-  Term.openRec_ty_tabs
-  Term.openRec_ty_tapp
-  Term.openRec_ty_tapp
-  Term.openRec_ty_let'
-  Term.openRec_ty_inl
-  Term.openRec_ty_inr
-  Term.openRec_ty_case
+    (case e1 e2 e3)⟦i ↝ s⟧ᵗᵞ = case (e1⟦i ↝ s⟧ᵗᵞ) (e2⟦i ↝ s⟧ᵗᵞ) (e3⟦i ↝ s⟧ᵗᵞ) := by rfl
 
 /-- Variable opening (term opening to type) of the closest binding. -/
-@[grind =]
+@[scoped grind =]
 def Term.open_ty (e : Term Var) U := Term.openRec_ty 0 U e
 
-scoped infixr:80 " ^ " => Term.open_ty
+scoped infixr:80 " ^ᵗᵞ " => Term.open_ty
 
 omit [HasFresh Var] [DecidableEq Var] in
-@[grind =]
-theorem Term.open_ty_eq {e : Term Var} : e ^ s = e⟦0 ↝ s⟧ := by rfl
+theorem Term.open_ty_eq {e : Term Var} : e ^ᵗᵞ s = e⟦0 ↝ s⟧ᵗᵞ := by rfl
 
 /-- Variable opening (term opening to term) of the ith bound variable. -/
-@[grind =]
+@[scoped grind =]
 def Term.openRec_tm (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
   match e with
   | bvar i => if k = i then f else (bvar i)
@@ -179,7 +161,7 @@ def Term.openRec_tm (k : ℕ) (f : Term Var) (e : Term Var) : Term Var :=
                (openRec_tm (k + 1) f e2)
                (openRec_tm (k + 1) f e3)
 
-scoped notation:68 e "⟦" i " ↝ " sub "⟧"=> Term.openRec_tm i sub e
+scoped notation:68 e "⟦" i " ↝ " sub "⟧ᵗᵗ"=> Term.openRec_tm i sub e
 
 section
 
@@ -187,75 +169,64 @@ variable {s : Term Var}
 
 omit [HasFresh Var] [DecidableEq Var]
 
-lemma Term.openRec_tm_bvar : (bvar i')⟦i ↝ s⟧ = if i = i' then s else (bvar i') := by rfl
+lemma Term.openRec_tm_bvar : (bvar i')⟦i ↝ s⟧ᵗᵗ = if i = i' then s else (bvar i') := by rfl
 
-lemma Term.openRec_tm_fvar : (fvar x)⟦i ↝ s⟧ = fvar x := by rfl
+lemma Term.openRec_tm_fvar : (fvar x)⟦i ↝ s⟧ᵗᵗ = fvar x := by rfl
 
-lemma Term.openRec_tm_abs : (abs V e1)⟦i ↝ s⟧ = abs V (e1⟦i + 1 ↝ s⟧) := by rfl
+lemma Term.openRec_tm_abs : (abs V e1)⟦i ↝ s⟧ᵗᵗ = abs V (e1⟦i + 1 ↝ s⟧ᵗᵗ) := by rfl
 
-lemma Term.openRec_tm_app : (app e1 e2)⟦i ↝ s⟧ = app (e1⟦i ↝ s⟧) (e2⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_tm_app : (app e1 e2)⟦i ↝ s⟧ᵗᵗ = app (e1⟦i ↝ s⟧ᵗᵗ) (e2⟦i ↝ s⟧ᵗᵗ) := by rfl
 
-lemma Term.openRec_tm_tabs : (tabs V e1)⟦i ↝ s⟧ = tabs V (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_tm_tabs : (tabs V e1)⟦i ↝ s⟧ᵗᵗ = tabs V (e1⟦i ↝ s⟧ᵗᵗ) := by rfl
 
-lemma Term.openRec_tm_tapp : (tapp e1 V)⟦i ↝ s⟧ = tapp (e1⟦i ↝ s⟧) V := by rfl
+lemma Term.openRec_tm_tapp : (tapp e1 V)⟦i ↝ s⟧ᵗᵗ = tapp (e1⟦i ↝ s⟧ᵗᵗ) V := by rfl
 
-lemma Term.openRec_tm_let' : (let' e1 e2)⟦i ↝ s⟧ = let' (e1⟦i ↝ s⟧) (e2⟦i + 1 ↝ s⟧) := by rfl
+lemma Term.openRec_tm_let' : (let' e1 e2)⟦i ↝ s⟧ᵗᵗ = let' (e1⟦i ↝ s⟧ᵗᵗ) (e2⟦i + 1 ↝ s⟧ᵗᵗ) := by rfl
 
-lemma Term.openRec_tm_inl : (inl e1)⟦i ↝ s⟧ = inl (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_tm_inl : (inl e1)⟦i ↝ s⟧ᵗᵗ = inl (e1⟦i ↝ s⟧ᵗᵗ) := by rfl
 
-lemma Term.openRec_tm_inr : (inr e1)⟦i ↝ s⟧ = inr (e1⟦i ↝ s⟧) := by rfl
+lemma Term.openRec_tm_inr : (inr e1)⟦i ↝ s⟧ᵗᵗ = inr (e1⟦i ↝ s⟧ᵗᵗ) := by rfl
 
 lemma Term.openRec_tm_case : 
-    (case e1 e2 e3)⟦i ↝ s⟧ = case (e1⟦i ↝ s⟧) (e2⟦i +1 ↝ s⟧) (e3⟦i + 1 ↝ s⟧) := by rfl
-
-attribute [grind =]
-  Term.openRec_tm_bvar
-  Term.openRec_tm_fvar
-  Term.openRec_tm_abs
-  Term.openRec_tm_app
-  Term.openRec_tm_tabs
-  Term.openRec_tm_tapp
-  Term.openRec_tm_let'
-  Term.openRec_tm_inl
-  Term.openRec_tm_inr
-  Term.openRec_tm_case
+    (case e1 e2 e3)⟦i ↝ s⟧ᵗᵗ = case (e1⟦i ↝ s⟧ᵗᵗ) (e2⟦i +1 ↝ s⟧ᵗᵗ) (e3⟦i + 1 ↝ s⟧ᵗᵗ) := by rfl
 
 end
 
 /-- Variable opening (term opening to term) of the closest binding. -/
-@[grind =]
+@[scoped grind =]
 def Term.open_tm (e1 e2 : Term Var) := Term.openRec_tm 0 e2 e1
 
-scoped infixr:80 " ^ " => Term.open_tm
+scoped infixr:80 " ^ᵗᵗ " => Term.open_tm
 
 /-- Locally closed types. -/
-@[grind cases]
+@[scoped grind cases]
 inductive Ty.LC : Ty Var → Prop
   | top : LC top
   | var : LC (fvar X)
   | arrow : LC T1 → LC T2 → LC (arrow T1 T2)
-  | all (L : Finset Var) : LC T1 → (∀ X ∉ L, LC (T2 ^ fvar X)) → LC (all T1 T2)
+  | all (L : Finset Var) : LC T1 → (∀ X ∉ L, LC (T2 ^ᵞ fvar X)) → LC (all T1 T2)
   | sum :LC T1 → LC T2 → LC (sum T1 T2)
 
 /-- Locally closed terms. -/
-@[grind cases]
+@[scoped grind cases]
 inductive Term.LC : Term Var → Prop
   | var : LC (fvar x)
-  | abs (L : Finset Var) : T.LC → (∀ x ∉ L, LC (e1 ^ fvar x)) → LC (abs T e1)
+  | abs (L : Finset Var) : T.LC → (∀ x ∉ L, LC (e1 ^ᵗᵗ fvar x)) → LC (abs T e1)
   | app : LC e1 → LC e2 → LC (app e1 e2)
-  | tabs (L : Finset Var) : T.LC → (∀ X ∉ L, LC (e1 ^ Ty.fvar X)) → LC (tabs T e1)
+  | tabs (L : Finset Var) : T.LC → (∀ X ∉ L, LC (e1 ^ᵗᵞ Ty.fvar X)) → LC (tabs T e1)
   | tapp : LC e1 → V.LC → LC (tapp e1 V)
-  | let' (L : Finset Var) : LC e1 → (∀ x ∉ L, LC (e2 ^ fvar x)) → LC (let' e1 e2)
+  | let' (L : Finset Var) : LC e1 → (∀ x ∉ L, LC (e2 ^ᵗᵗ fvar x)) → LC (let' e1 e2)
   | inl : LC e1 → LC (inl e1)
   | inr : LC e1 → LC (inr e1)
   | case (L : Finset Var) :
       LC e1 →
-      (∀ x ∉ L, LC (e2 ^ fvar x)) →
-      (∀ x ∉ L, LC (e3 ^ fvar x)) →
+      (∀ x ∉ L, LC (e2 ^ᵗᵗ fvar x)) →
+      (∀ x ∉ L, LC (e3 ^ᵗᵗ fvar x)) →
       LC (case e1 e2 e3)
 
 /-- Existential predicate for being a locally closed body of an abstraction. -/
-def Term.body (e : Term Var) := ∃ L : Finset Var, ∀ x ∉ L, LC (e ^ Term.fvar x)
+@[scoped grind =]
+def Term.body (e : Term Var) := ∃ L : Finset Var, ∀ x ∉ L, LC (e ^ᵗᵗ Term.fvar x)
 
 /-- A context binding. -/
 inductive Binding (Var : Type u) : Type (u + 1)
@@ -274,7 +245,7 @@ inductive Ty.wf : Env Var → Ty Var → Prop
   | arrow : wf E T1 → wf E T2 → wf E (arrow T1 T2)
   | all (L : Finset Var) : 
       wf E T1 →
-      (∀ X ∉ L, wf ([⟨X,Binding.sub T1⟩] ++ E) (T2 ^ fvar X)) →
+      (∀ X ∉ L, wf ([⟨X,Binding.sub T1⟩] ++ E) (T2 ^ᵞ fvar X)) →
       wf E (all T1 T2)
   | sum : wf E T1 → wf E T2 → wf E (sum T1 T2)
 
@@ -292,7 +263,7 @@ inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
   | arrow : Sub E T1 S1 → Sub E S2 T2 → Sub E (arrow S1 S2) (arrow T1 T2)
   | all (L : Finset Var) :
       Sub E T1 S1 →
-      (∀ X ∉ L, Sub ([⟨X, Binding.sub T1⟩] ++ E) (S2 ^ fvar X) (Ty.open' T2 (fvar X))) →
+      (∀ X ∉ L, Sub ([⟨X, Binding.sub T1⟩] ++ E) (S2 ^ᵞ fvar X) (T2 ^ᵞ fvar X)) →
       Sub E (all S1 S2) (all T1 T2)
   | sum : Sub E S1 T1 → Sub E S2 T2 → Sub E (sum S1 S2) (sum T1 T2)
 
@@ -301,24 +272,24 @@ open Term Ty in
 inductive Typing : Env Var → Term Var → Ty Var → Prop
   | var : E.wf → E.dlookup x = some (Binding.ty T) → Typing E (fvar x) T
   | abs (L : Finset Var) :
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty V⟩] ++ E) (e1 ^ Term.fvar x) T1) →
+      (∀ x ∉ L, Typing ([⟨x, Binding.ty V⟩] ++ E) (e1 ^ᵗᵗ fvar x) T1) →
       Typing E (abs V e1) (arrow V T1)
   | app : Typing E e1 (arrow T1 T2) → Typing E e2 T1 → Typing E (app e1 e2) T2
   | tabs (L : Finset Var) :
-      (∀ X ∉ L, Typing ([⟨X, Binding.sub V⟩] ++ E) (e1 ^ Ty.fvar X) (T1 ^ fvar X)) →
+      (∀ X ∉ L, Typing ([⟨X, Binding.sub V⟩] ++ E) (e1 ^ᵗᵞ fvar X) (T1 ^ᵞ fvar X)) →
       Typing E (tabs V e1) (all V T1)
-  | tapp : Typing E e1 (all T1 T2) → Sub E T T1 → Typing E (tapp e1 T) (T2 ^ T)
+  | tapp : Typing E e1 (all T1 T2) → Sub E T T1 → Typing E (tapp e1 T) (T2 ^ᵞ T)
   | sub : Typing E e S → Sub E S T → Typing E e T
   | let' (L : Finset Var) :
       Typing E e1 T1 →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ Term.fvar x) T2) →
+      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ᵗᵗ fvar x) T2) →
       Typing E (let' e1 e2) T2
   | inl : Typing E e1 T1 → T2.wf E → Typing E (inl e1) (sum T1 T2)
   | inr : Typing E e1 T2 → T1.wf E → Typing E (inr e1) (sum T1 T2)
   | case (L : Finset Var) :
       Typing E e1 (sum T1 T2) →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ Term.fvar x) T) →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T2⟩] ++ E) (e3 ^ Term.fvar x) T) →
+      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ᵗᵗ fvar x) T) →
+      (∀ x ∉ L, Typing ([⟨x, Binding.ty T2⟩] ++ E) (e3 ^ᵗᵗ fvar x) T) →
       Typing E (case e1 e2 e3) T
 
 /-- Values are irreducible terms. -/
@@ -333,26 +304,26 @@ inductive Term.Red : Term Var → Term Var → Prop
   | app_1 : LC e2 → Red e1 e1' → Red (app e1 e2) (app e1' e2)
   | app_2 : Value e1 → Red e2 e2' → Red (app e1 e2) (app e1 e2')
   | tapp : V.LC → Red e1 e1' → Red (tapp e1 V) (tapp e1' V)
-  | abs : LC (abs T e1) → Value v2 → Red (app (abs T e1) v2) (e1 ^ v2)
-  | tabs : LC (tabs T1 e1) → T2.LC → Red (tapp (tabs T1 e1) T2) (e1 ^ T2)
+  | abs : LC (abs T e1) → Value v2 → Red (app (abs T e1) v2) (e1 ^ᵗᵗ v2)
+  | tabs : LC (tabs T1 e1) → T2.LC → Red (tapp (tabs T1 e1) T2) (e1 ^ᵗᵞ T2)
   | let_1 : Red e1 e1' → e2.body → Red (let' e1 e2) (let' e1' e2)
-  | let' : Value v1 → e2.body → Red (let' v1 e2) (e2 ^ v1)
+  | let' : Value v1 → e2.body → Red (let' v1 e2) (e2 ^ᵗᵗ v1)
   | inl_1 : Red e1 e1' → Red (inl e1) (inl e1')
   | inr_1 : Red e1 e1' → Red (inr e1) (inr e1')
   | case_1 : Red e1 e1' → e2.body → e3.body → Red (case e1 e2 e3) (case e1' e2 e3)
-  | case_inl : Value v1 → e2.body → e3.body → Red (case (inl v1) e2 e3) (e2 ^ v1)
-  | case_inr : Value v1 → e2.body → e3.body → Red (case (inr v1) e2 e3) (e3 ^ v1)
+  | case_inl : Value v1 → e2.body → e3.body → Red (case (inl v1) e2 e3) (e2 ^ᵗᵗ v1)
+  | case_inr : Value v1 → e2.body → e3.body → Red (case (inr v1) e2 e3) (e3 ^ᵗᵗ v1)
 
 
 /-- Free variables of a type. -/
-@[grind =]
+@[scoped grind =]
 def Ty.fv : Ty Var → Finset Var
 | top | bvar _ => {}
 | fvar X => {X}
 | arrow T1 T2 | all T1 T2 | sum T1 T2 => T1.fv ∪ T2.fv
 
 /-- Free type variables of a term. -/
-@[grind =]
+@[scoped grind =]
 def Term.fv_ty : Term Var → Finset Var
 | bvar _ | fvar _ => {}
 | abs V e1 | tabs V e1 | tapp e1 V => V.fv ∪ e1.fv_ty
@@ -361,7 +332,7 @@ def Term.fv_ty : Term Var → Finset Var
 | case e1 e2 e3 => e1.fv_ty ∪ e2.fv_ty ∪ e3.fv_ty
 
 /-- Free term variables of a term. -/
-@[grind =]
+@[scoped grind =]
 def Term.fv_tm : Term Var → Finset Var
 | bvar _ => {}
 | fvar x => singleton x
@@ -371,6 +342,7 @@ def Term.fv_tm : Term Var → Finset Var
 | case e1 e2 e3 => e1.fv_tm ∪ e2.fv_tm ∪ e3.fv_tm
 
 /-- Type substitution. -/
+@[scoped grind =]
 def Ty.subst (Z : Var) (U : Ty Var) : Ty Var → Ty Var
 | top => top
 | bvar J => bvar J
@@ -400,15 +372,13 @@ lemma Ty.subst_all : (all T1 T2 : Ty Var)[x := n] = all (T1[x := n]) (T2[x := n]
 
 lemma Ty.subst_sum : (sum T1 T2 : Ty Var)[x := n] = sum (T1[x := n]) (T2[x := n]) := by rfl
 
+@[scoped grind _=_]
 lemma Ty.subst_def : Ty.subst (x : Var) (n : Ty Var) (m : Ty Var) = m[x := n] := by rfl
-
-attribute [grind =] 
-  Ty.subst_top Ty.subst_bvar Ty.subst_fvar Ty.subst_arrow Ty.subst_all Ty.subst_sum Ty.subst_def
 
 end
 
 /-- Term substitution of types. -/
-@[grind =]
+@[scoped grind =]
 def Term.subst_ty (Z : Var) (U : Ty Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => fvar x
@@ -452,25 +422,13 @@ lemma Term.subst_ty_inr : (inr e1 : Term Var)[x := n] = inr (e1[x := n]) := by r
 lemma Term.subst_ty_case : 
     (case e1 e2 e3 : Term Var)[x := n] = case (e1[x := n]) (e2[x := n]) (e3[x := n]) := by rfl
 
+@[scoped grind _=_]
 lemma Term.subst_ty_def : Term.subst_ty (x : Var) (n : Ty Var) (m : Term Var) = m[x := n] := by rfl
-
-attribute [grind =]
-  Term.subst_ty_bvar
-  Term.subst_ty_fvar
-  Term.subst_ty_abs
-  Term.subst_ty_app
-  Term.subst_ty_tabs
-  Term.subst_ty_tapp
-  Term.subst_ty_let'
-  Term.subst_ty_inl
-  Term.subst_ty_inr
-  Term.subst_ty_case
-  Term.subst_ty_def
 
 end
 
 /-- Term substitution of terms. -/
-@[grind =]
+@[scoped grind =]
 def Term.subst_tm (z : Var) (u : Term Var) : Term Var → Term Var
 | bvar i => bvar i
 | fvar x => if x = z then u else fvar x
@@ -514,25 +472,14 @@ lemma Term.subst_tm_inr : (inr e1 : Term Var)[x := n] = inr (e1[x := n]) := by r
 lemma Term.subst_tm_case : 
     (case e1 e2 e3 : Term Var)[x := n] = case (e1[x := n]) (e2[x := n]) (e3[x := n]) := by rfl
 
+@[scoped grind _=_]
 lemma Term.subst_tm_def : Term.subst_tm (x : Var) (n : Term Var) (m : Term Var) = m[x := n] := 
   by rfl
-
-attribute [grind =]
-  Term.subst_tm_bvar
-  Term.subst_tm_fvar
-  Term.subst_tm_abs
-  Term.subst_tm_app
-  Term.subst_tm_tabs
-  Term.subst_tm_tapp
-  Term.subst_tm_let'
-  Term.subst_tm_inl
-  Term.subst_tm_inr
-  Term.subst_tm_case
-  Term.subst_tm_def
 
 end
 
 /-- Binding substitution of types. -/
+@[scoped grind =]
 def Binding.subst (Z : Var) (P : Ty Var) : Binding Var → Binding Var
 | sub T => sub (T[Z := P])
 | ty  T => ty  (T[Z := P])
@@ -542,10 +489,8 @@ instance : HasSubstitution (Binding Var) Var (Ty Var) where
 
 omit [HasFresh Var]
 
-@[grind =]
 lemma Binding.subst_sub {T n : Ty Var} {x : Var} : (sub T)[x := n] = sub (T[x := n]) := by rfl
 
-@[grind =]
 lemma Binding.subst_ty {T n : Ty Var} {x : Var} : (ty T)[x := n] = ty (T[x := n]) := by rfl
 
 end LambdaCalculus.LocallyNameless.Fsub
