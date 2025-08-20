@@ -49,6 +49,7 @@ lemma Ty.subst_fresh (Z : Var) (U T : Ty Var) (nmem : Z ∉ T.fv) : T = T[Z := U
   induction T <;> grind
 
 /-- Substitution of a locally closed type distributes with opening. -/
+@[scoped grind]
 lemma Ty.subst_openRec (T1 T2 : Ty Var) (X : Var) (P : Ty Var) k (lc : P.LC) : 
     (T1⟦k ↝ T2⟧ᵞ)[X := P] = T1[X := P]⟦k ↝ T2[X := P]⟧ᵞ := by
   induction T1 generalizing k <;> grind
@@ -59,12 +60,11 @@ lemma Ty.subst_open (T1 T2 : Ty Var) (X : Var) (P : Ty Var) (lc : P.LC) :
 
 /-- Specialize `Ty.subst_open` to free variables. -/
 lemma Ty.subst_open_var (X Y : Var) (P T : Ty Var) (neq : Y ≠ X) (lc : P.LC) :
-    (T[X := P]) ^ᵞ fvar Y = (T ^ᵞ fvar Y)[X := P] := by
-  have := Ty.subst_open T (fvar Y) X P lc
-  grind
+    (T ^ᵞ fvar Y)[X := P] = (T[X := P]) ^ᵞ fvar Y := by grind
 
 omit [HasFresh Var] in
 /-- Opening to a type is equivalent to opening to a free variable and substituting. -/
+@[scoped grind]
 lemma Ty.openRec_subst_intro (X : Var) (T2 U : Ty Var) (k : ℕ) (nmem : X ∉ T2.fv) :
     T2⟦k ↝ U⟧ᵞ = (T2⟦k ↝ fvar X⟧ᵞ)[X := U] := by
   induction T2 generalizing U k <;> grind
@@ -104,5 +104,24 @@ lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k
 omit [HasFresh Var] in
 lemma Term.subst_ty_fresh (X : Var) (U : Ty Var) (e : Term Var) (nmem : X ∉ e.fv_ty) : 
     e = e [X := U] := by induction e <;> grind
+
+@[scoped grind]
+lemma Term.subst_openRec_ty (e : Term Var) T (X : Var) (U : Ty Var) k (U_lc : U.LC) : 
+    (e⟦k ↝ T⟧ᵗᵞ)[X := U] = (e[X := U])⟦k ↝  T[X := U]⟧ᵗᵞ := by
+  induction e generalizing k <;> grind
+
+lemma Term.subst_open_ty (e : Term Var) T (X : Var) (U : Ty Var) (U_lc : U.LC) : 
+    (e ^ᵗᵞ T)[X := U] = e[X := U] ^ᵗᵞ T[X := U] := subst_openRec_ty e T X U 0 U_lc
+
+lemma Term.subst_open_var_ty (X Y : Var) (U : Ty Var) (e : Term Var) (neq : X ≠ Y) (U_lc : U.LC) :
+    (e ^ᵗᵞ Ty.fvar Y)[X := U] = e[X := U] ^ᵗᵞ Ty.fvar Y := by grind
+
+omit [HasFresh Var]
+lemma Term.openRec_subst_intro_ty (X : Var) (e : Term Var) (U : Ty Var) k (nmem : X ∉ e.fv_ty) : 
+    e⟦k ↝ U⟧ᵗᵞ = (e⟦k ↝ Ty.fvar X⟧ᵗᵞ)[X := U] := by
+  induction e generalizing X U k <;> grind
+
+lemma Term.open_subst_intro_ty (X : Var) (e : Term Var) (U : Ty Var) (nmem : X ∉ e.fv_ty) : 
+    e ^ᵗᵞ U = (e ^ᵗᵞ Ty.fvar X)[X := U] := openRec_subst_intro_ty X e U 0 nmem
 
 end LambdaCalculus.LocallyNameless.Fsub
