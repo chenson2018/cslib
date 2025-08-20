@@ -27,7 +27,7 @@ namespace LambdaCalculus.LocallyNameless.Fsub
 open Ty Term
 
 omit [HasFresh Var] [DecidableEq Var] in
-/-- An opening appearing in both sides of an equality of terms can be removed. -/
+/-- An opening appearing in both sides of an equality of types can be removed. -/
 @[scoped grind]
 lemma Ty.openRec_lc_aux (T : Ty Var) j V i U (neq : i ≠ j) (h : T⟦j ↝ V⟧ᵞ = T⟦j ↝ V⟧ᵞ⟦i ↝ U⟧ᵞ) : 
     T = T⟦i ↝ U⟧ᵞ := by induction T generalizing j i <;> grind
@@ -86,6 +86,7 @@ lemma Term.openRec_ty_lc_aux₂ (e : Term Var) j (Q : Ty Var) i (P : Ty Var) :
     i ≠ j → e⟦j ↝ Q⟧ᵗᵞ = e⟦j ↝ Q⟧ᵗᵞ⟦i ↝ P⟧ᵗᵞ → e = e⟦i ↝ P⟧ᵗᵞ := by
   induction e generalizing j i <;> grind
 
+/-- An opening (term to type) appearing in both sides of an equality of terms can be removed. -/
 lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k ↝ U⟧ᵗᵞ := by
   induction e generalizing k
   case abs T t ih =>
@@ -102,25 +103,31 @@ lemma Term.openRec_ty_lc (e : Term Var) (U : Ty Var) k (e_lc : e.LC) : e = e⟦k
   all_goals grind
 
 omit [HasFresh Var] in
+/-- Substitution of a free type variable not present in a term leaves it unchanged. -/
 lemma Term.subst_ty_fresh (X : Var) (U : Ty Var) (e : Term Var) (nmem : X ∉ e.fv_ty) : 
     e = e [X := U] := by induction e <;> grind
 
+/-- Substitution of a locally closed type distributes with term opening to a type . -/
 @[scoped grind]
 lemma Term.subst_openRec_ty (e : Term Var) T (X : Var) (U : Ty Var) k (U_lc : U.LC) : 
     (e⟦k ↝ T⟧ᵗᵞ)[X := U] = (e[X := U])⟦k ↝  T[X := U]⟧ᵗᵞ := by
   induction e generalizing k <;> grind
 
+/-- Specialize `Term.subst_openRec_ty` to the first opening. -/
 lemma Term.subst_open_ty (e : Term Var) T (X : Var) (U : Ty Var) (U_lc : U.LC) : 
     (e ^ᵗᵞ T)[X := U] = e[X := U] ^ᵗᵞ T[X := U] := subst_openRec_ty e T X U 0 U_lc
 
+/-- Specialize `Term.subst_open_ty` to free variables. -/
 lemma Term.subst_open_var_ty (X Y : Var) (U : Ty Var) (e : Term Var) (neq : X ≠ Y) (U_lc : U.LC) :
     (e ^ᵗᵞ Ty.fvar Y)[X := U] = e[X := U] ^ᵗᵞ Ty.fvar Y := by grind
 
 omit [HasFresh Var]
+/-- Opening to a term to a type is equivalent to opening to a free variable and substituting. -/
 lemma Term.openRec_subst_intro_ty (X : Var) (e : Term Var) (U : Ty Var) k (nmem : X ∉ e.fv_ty) : 
     e⟦k ↝ U⟧ᵗᵞ = (e⟦k ↝ Ty.fvar X⟧ᵗᵞ)[X := U] := by
   induction e generalizing X U k <;> grind
 
+/-- Specialize `Term.openRec_subst_intro_ty` to the first opening. -/
 lemma Term.open_subst_intro_ty (X : Var) (e : Term Var) (U : Ty Var) (nmem : X ∉ e.fv_ty) : 
     e ^ᵗᵞ U = (e ^ᵗᵞ Ty.fvar X)[X := U] := openRec_subst_intro_ty X e U 0 nmem
 
