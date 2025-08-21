@@ -83,6 +83,7 @@ elab "free_union" cfg:optConfig var:term : term => do
   for ldecl in (← getLCtx) do
     if !ldecl.isImplementationDetail then
       let local_type ← inferType (mkFVar ldecl.fvarId)
+      let local_type ← whnf local_type
 
       -- any finite sets
       if let  (``Finset, #[var']) := local_type.getAppFnArgs then

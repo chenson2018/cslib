@@ -234,9 +234,9 @@ lemma Term.body_from_lc_let (e1 e2 : Term Var) (let_lc : (let' e1 e2).LC) : e2.b
 omit [HasFresh Var] in
 lemma Term.lc_case_from_body (e1 e2 e3 : Term Var) (e1_lc : e1.LC) (h₁ : e2.body) (h₂ : e3.body) :
     (case e1 e2 e3).LC := by
-  cases h₁ with | intro L₁ cofin₁ =>
-  cases h₂ with | intro L₂ cofin₂ =>
-  apply LC.case (L₁ ∪ L₂) e1_lc <;> grind
+  cases h₁
+  cases h₂
+  apply LC.case (free_union Var) e1_lc <;> grind
 
 omit [HasFresh Var] in
 lemma Term.body_inl_from_lc_case (e1 e2 e3 : Term Var) (lc : (case e1 e2 e3).LC) : e2.body := by
@@ -251,9 +251,8 @@ lemma Term.body_inr_from_lc_case (e1 e2 e3 : Term Var) (lc : (case e1 e2 e3).LC)
   grind
 
 lemma Term.open_tm_body (e1 e2 : Term Var) (h : e1.body) (e2_lc : e2.LC) : (e1 ^ᵗᵗ e2).LC := by
-  cases h with | intro L cofin =>
-  -- TODO: bug with `free_union`
-  let ⟨x, _⟩ := fresh_exists <| L ∪ e1.fv_tm
+  cases h
+  let ⟨x, _⟩ := fresh_exists <| free_union (map := fv_tm) Var
   grind [open_subst_intro_tm, subst_tm_lc]
 
 end LambdaCalculus.LocallyNameless.Fsub
