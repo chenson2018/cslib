@@ -223,4 +223,37 @@ lemma Term.subst_ty_lc (Z : Var) (P : Ty Var) (e : Term Var) (e_lc : e.LC) (P_lc
 lemma Term.subst_tm_lc (z : Var) (e1 e2 : Term Var) (e1_lc : e1.LC) (e2_lc : e2.LC) :
     e1[z := e2].LC := sorry
 
+omit [HasFresh Var] [DecidableEq Var] in
+lemma Term.lc_let_from_body (e1 e2 : Term Var) (e1_lc : e1.LC) (h : e2.body) : (let' e1 e2).LC :=
+  LC.let' h.choose e1_lc h.choose_spec
+
+omit [HasFresh Var] [DecidableEq Var] in
+lemma Term.body_from_lc_let (e1 e2 : Term Var) (let_lc : (let' e1 e2).LC) : e2.body := by
+  cases let_lc with | let' L => exists L
+
+omit [HasFresh Var] in
+lemma Term.lc_case_from_body (e1 e2 e3 : Term Var) (e1_lc : e1.LC) (h₁ : e2.body) (h₂ : e3.body) :
+    (case e1 e2 e3).LC := by
+  cases h₁ with | intro L₁ cofin₁ =>
+  cases h₂ with | intro L₂ cofin₂ =>
+  apply LC.case (L₁ ∪ L₂) e1_lc <;> grind
+
+omit [HasFresh Var] in
+lemma Term.body_inl_from_lc_case (e1 e2 e3 : Term Var) (lc : (case e1 e2 e3).LC) : e2.body := by
+  cases lc
+  exists (free_union Var)
+  grind
+
+omit [HasFresh Var] in
+lemma Term.body_inr_from_lc_case (e1 e2 e3 : Term Var) (lc : (case e1 e2 e3).LC) : e3.body := by
+  cases lc
+  exists (free_union Var)
+  grind
+
+lemma Term.open_tm_body (e1 e2 : Term Var) (h : e1.body) (e2_lc : e2.LC) : (e1 ^ᵗᵗ e2).LC := by
+  cases h with | intro L cofin =>
+  -- TODO: bug with `free_union`
+  let ⟨x, _⟩ := fresh_exists <| L ∪ e1.fv_tm
+  grind [open_subst_intro_tm, subst_tm_lc]
+
 end LambdaCalculus.LocallyNameless.Fsub
