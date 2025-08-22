@@ -98,17 +98,11 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     for ldecl in (← getLCtx) do
       if !ldecl.isImplementationDetail then
-        let local_type ← inferType (mkFVar ldecl.fvarId)
-        let local_type ← whnf local_type
-
+        let local_type ← mkFVar ldecl.fvarId |> inferType >=> whnf
         for map in maps do
-          let map_ty ← inferType map
-          let map_dom := 
-            match map_ty with
-            | Expr.forallE _ dom _ _ => dom
-            | _ => mkConst ``Empty
-          if (←isDefEq local_type map_dom) then
-            finsets := finsets.push (mkApp map ldecl.toExpr)
+          if let Expr.forallE _ dom _ _ := ← inferType map then
+            if (←isDefEq local_type dom) then
+              finsets := finsets.push (mkApp map ldecl.toExpr)
 
     -- construct a union fold
     let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
