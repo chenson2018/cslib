@@ -23,11 +23,18 @@ example (_ : Term) (x : ℕ) (xs : Finset ℕ) :
 -- check that options work as expected
 section
 
-variable (x : ℕ) (xs : Finset ℕ)
+variable (x : ℕ) (xs : Finset ℕ) (var : String)
+
+def f (_ : String) : Finset ℕ := {1, 2, 3}
+def g (_ : String) : Finset ℕ := {4, 5, 6}
 
 /-- info: ∅ ∪ {x} ∪ id xs : Finset ℕ -/
 #guard_msgs in
 #check free_union ℕ
+
+/-- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ -/
+#guard_msgs in
+#check free_union [f, g] ℕ
 
 /-- info: ∅ ∪ id xs : Finset ℕ -/
 #guard_msgs in

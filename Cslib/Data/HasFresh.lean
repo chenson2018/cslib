@@ -39,24 +39,33 @@ structure FreeUnionConfig where
 declare_config_elab elabFreeUnionConfig FreeUnionConfig
 
 /-- 
-  Given a `DecidableEq Var` instance, this elaborator automatically constructs the union of any
-  variables, finite sets of variables, and optionally the results of provided functions mapping to
-  variables.
+  Given a `DecidableEq Var` instance, this elaborator automatically constructs
+  the union of any variables, finite sets of variables, and optionally the
+  results of provided functions mapping to variables. This is configurable with
+  optional boolean boolean arguments `singleton` and `finset`.
 
   As an example, consider the following:
 
   ```
-  variable {Var Term : Type} [DecidableEq Var]
+  variable (x : ℕ) (xs : Finset ℕ) (var : String)
   
-  example (x : Var) (xs : Finset Var) : True := by
-    -- free : Finset Var := ∅ ∪ {x} ∪ xs
-    let free := free_union Var
-    trivial
+  def f (_ : String) : Finset ℕ := {1, 2, 3}
+  def g (_ : String) : Finset ℕ := {4, 5, 6}
   
-  example (x : Var) (xs : Finset Var) (t : Term) (fv : Term → Finset Var) : True := by
-    -- free : Finset Var := ∅ ∪ {x} ∪ xs ∪ fv t
-    let free := free_union [fv] Var
-    trivial
+  -- info: ∅ ∪ {x} ∪ id xs : Finset ℕ
+  #check free_union ℕ
+  
+  -- info: ∅ ∪ {x} ∪ id xs ∪ f var ∪ g var : Finset ℕ
+  #check free_union [f, g] ℕ
+  
+  info: ∅ ∪ id xs : Finset ℕ
+  #check free_union (singleton := false) ℕ
+  
+  -- info: ∅ ∪ {x} : Finset ℕ
+  #check free_union (finset := false) ℕ
+  
+  -- info: ∅ : Finset ℕ
+  #check free_union (singleton := false) (finset := false) ℕ
   ```
 -/
 syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : term
