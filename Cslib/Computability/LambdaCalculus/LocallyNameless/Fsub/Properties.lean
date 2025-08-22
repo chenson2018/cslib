@@ -252,7 +252,7 @@ lemma Term.body_inr_from_lc_case (e1 e2 e3 : Term Var) (lc : (case e1 e2 e3).LC)
 
 lemma Term.open_tm_body (e1 e2 : Term Var) (h : e1.body) (e2_lc : e2.LC) : (e1 ^ᵗᵗ e2).LC := by
   cases h
-  let ⟨x, _⟩ := fresh_exists <| free_union (map := fv_tm) Var
+  let ⟨x, _⟩ := fresh_exists <| free_union [fv_tm, fv_ty] Var
   grind [open_subst_intro_tm, subst_tm_lc]
 
 end LambdaCalculus.LocallyNameless.Fsub

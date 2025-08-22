@@ -136,7 +136,7 @@ lemma typing_subst_head (weak : ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s 
 theorem preservation_open {xs : Finset Var}
   (cofin : ∀ x ∉ xs, ⟨x, σ⟩ :: Γ ⊢ m ^ fvar x ∶ τ) (der : Γ ⊢ n ∶ σ) : 
     Γ ⊢ m ^ n ∶ τ := by
-  have ⟨fresh, _⟩ := fresh_exists <| free_union (map := Term.fv) Var
+  have ⟨fresh, _⟩ := fresh_exists <| free_union [Term.fv] Var
   rw [subst_intro fresh n m (by grind) der.lc]
   exact typing_subst_head (by grind) der
 
