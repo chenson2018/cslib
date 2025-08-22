@@ -255,4 +255,19 @@ lemma Term.open_tm_body (e1 e2 : Term Var) (h : e1.body) (e2_lc : e2.LC) : (e1 ^
   let ⟨x, _⟩ := fresh_exists <| free_union [fv_tm, fv_ty] Var
   grind [open_subst_intro_tm, subst_tm_lc]
 
+lemma Ty.wf.LC (E : Env Var) (T : Ty Var) (T_wf : T.wf E) : T.LC := by
+  induction T_wf
+  case all L _ _ _ _ => 
+    -- TODO: how to get grind to do this???
+    apply LC.all L <;> grind
+  all_goals grind [LC.top, LC.var, LC.arrow, LC.sum]
+
+lemma Ty.wf.weakening (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E)✓) :
+    T.wf (G ++ F ++ E) := by
+  generalize eq : G ++ E = F at wf_GE
+  induction wf_GE generalizing G 
+  case all => sorry
+  case var => sorry
+  all_goals grind
+
 end LambdaCalculus.LocallyNameless.Fsub
