@@ -65,8 +65,7 @@ syntax (name := freeUnion) "free_union" optConfig (" [" (term,*) "]")? term : te
 def HasFresh.freeUnion : TermElab := fun stx _ => do
   match stx with
   | `(free_union $cfg $[[$maps,*]]? $var:term) =>
-    -- TODO: get this from the syntax
-    let cfg : FreeUnionConfig := {}
+    let cfg ← elabFreeUnionConfig cfg |>.run { elaborator := .anonymous } |>.run' { goals := [] }
 
     -- the type of our variables
     let var ← elabType var

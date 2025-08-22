@@ -19,3 +19,26 @@ example (_ : Term) (x : ℕ) (xs : Finset ℕ) :
   let ⟨fresh, _⟩ := fresh_exists <| free_union [@fv Term] ℕ
   exists fresh
   aesop
+
+-- check that options work as expected
+section
+
+variable (x : ℕ) (xs : Finset ℕ)
+
+/-- info: ∅ ∪ {x} ∪ id xs : Finset ℕ -/
+#guard_msgs in
+#check free_union ℕ
+
+/-- info: ∅ ∪ id xs : Finset ℕ -/
+#guard_msgs in
+#check free_union (singleton := false) ℕ
+
+/-- info: ∅ ∪ {x} : Finset ℕ -/
+#guard_msgs in
+#check free_union (finset := false) ℕ
+
+/-- info: ∅ : Finset ℕ -/
+#guard_msgs in
+#check free_union (singleton := false) (finset := false) ℕ
+
+end
