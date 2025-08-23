@@ -255,19 +255,66 @@ lemma Term.open_tm_body (e1 e2 : Term Var) (h : e1.body) (e2_lc : e2.LC) : (e1 ^
   let ⟨x, _⟩ := fresh_exists <| free_union [fv_tm, fv_ty] Var
   grind [open_subst_intro_tm, subst_tm_lc]
 
-lemma Ty.wf.LC (E : Env Var) (T : Ty Var) (T_wf : T.wf E) : T.LC := by
+namespace Ty.wf
+
+omit [HasFresh Var] in
+lemma LC (E : Env Var) (T : Ty Var) (T_wf : T.wf E) : T.LC := by
   induction T_wf
   case all L _ _ _ _ => 
     -- TODO: how to get grind to do this???
     apply LC.all L <;> grind
   all_goals grind [LC.top, LC.var, LC.arrow, LC.sum]
 
-lemma Ty.wf.weakening (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E)✓) :
+lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E)✓) :
     T.wf (G ++ F ++ E) := by
   generalize eq : G ++ E = F at wf_GE
   induction wf_GE generalizing G 
   case all => sorry
   case var => sorry
   all_goals grind
+
+lemma weakening_head (T : Ty Var) (E F) (wf_E : T.wf E) (ok_FE : (F ++ E)✓) : T.wf (F ++ E) := by
+  have : F ++ E = [] ++ F ++ E := by simp
+  rw [this] at *
+  grind [Ty.wf.weaken] 
+
+-- TODO: I think a cons with Perm would be fine here
+
+lemma narrow V U (T : Ty Var) E F X
+  (wf : T.wf (F ++ [⟨X, Binding.sub V⟩] ++ E)) 
+  (ok : (F ++ [⟨X, Binding.sub U⟩] ++ E)✓)
+  : T.wf (F ++ [⟨X, Binding.sub U⟩] ++ E) := by
+  generalize eq' : F ++ [⟨X, Binding.sub V⟩] ++ E = G' at wf
+  generalize eq  : F ++ [⟨X, Binding.sub U⟩] ++ E = G  at wf
+  induction wf generalizing F
+  case var => sorry
+  case all => sorry
+  all_goals grind
+
+lemma strengthen E F x U (T : Ty Var) (wf : T.wf (F ++ [⟨x, Binding.ty U⟩] ++ E)) : 
+    T.wf (F ++ E) := by
+  generalize eq : (F ++ [⟨x, Binding.ty U⟩] ++ E) = G at wf
+  induction wf generalizing F
+  case var => sorry
+  case all => sorry
+  all_goals grind
+
+-- TODO: formatting...
+lemma lc_subst (F : Env Var) Q (E : Env Var) Z (P T : Ty Var)
+  (wf₁ : T.wf (F ++ [⟨Z, Binding.sub Q⟩] ++ E))
+  (wf₂ : P.wf E)
+  (ok : ((F ++ E).map (fun ⟨x, σ⟩ => (⟨x, σ[Z:=P]⟩ : ((_ : Var) × Binding Var))))✓)
+  : T[Z := P].wf ((F ++ E).map (fun ⟨x, σ⟩ => (⟨x, σ[Z:=P]⟩ : ((_ : Var) × Binding Var))))
+  := sorry
+
+lemma open_ty E (U T1 T2 : Ty Var) (ok : E✓) (wf₁ : (Ty.all T1 T2).wf E) (wf₂ : U.wf E) : 
+    (T2 ^ᵞ U).wf E := by
+  cases wf₁ with | all L T1_wf cofin =>
+  let ⟨x,_⟩ := fresh_exists <| free_union [fv] Var
+  rw [open_subst_intro x]
+  sorry
+  grind
+
+end Ty.wf
 
 end LambdaCalculus.LocallyNameless.Fsub
