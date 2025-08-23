@@ -317,4 +317,12 @@ lemma open_ty E (U T1 T2 : Ty Var) (ok : E✓) (wf₁ : (Ty.all T1 T2).wf E) (wf
 
 end Ty.wf
 
+open Context
+
+omit [HasFresh Var] in
+lemma ok_from_wf_env (E : Env Var) (wf : E.wf) : E✓ := by
+  induction wf 
+  <;> constructor
+  <;> first | assumption | grind [List.append_eq]
+ 
 end LambdaCalculus.LocallyNameless.Fsub

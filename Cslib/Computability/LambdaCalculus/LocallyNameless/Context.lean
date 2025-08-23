@@ -45,6 +45,11 @@ theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} : x ∈ Γ.dom ↔ x ∈ Δ.
   induction h <;> simp_all only [dom, Function.comp_apply, mem_toFinset, keys_cons, mem_cons] 
   grind
 
+@[scoped grind →]
+theorem dom_mem (mem : ⟨x, σ⟩ ∈ Γ) : x ∈ Γ.dom := by
+  simp only [dom, Function.comp_apply, mem_toFinset, keys]
+  grind
+
 omit [DecidableEq Var] in
 /-- Context well-formedness is preserved on permuting a context. -/
 @[scoped grind →]
