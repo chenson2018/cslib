@@ -99,7 +99,7 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     -- any finite sets
     if cfg.finset then
-      let id_map := mkApp (mkConst `id [← getLevel var]) FinsetType
+      let id_map := mkApp (mkConst ``id [← getLevel var]) FinsetType
       maps := maps.push id_map
 
     let mut finsets := #[]
@@ -114,7 +114,7 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     -- construct a union fold
     let UnionInst ← synthInstance (mkApp (mkConst ``Union [dl]) FinsetType)
-    let UnionFinset := mkAppN (mkConst `Union.union [dl]) #[FinsetType, UnionInst]
+    let UnionFinset := mkAppN (mkConst ``Union.union [dl]) #[FinsetType, UnionInst]
     let union := finsets.foldl (mkApp2 UnionFinset) empty
       
     return union
