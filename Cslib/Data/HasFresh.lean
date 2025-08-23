@@ -106,7 +106,7 @@ def HasFresh.freeUnion : TermElab := fun stx _ => do
 
     for ldecl in (← getLCtx) do
       if !ldecl.isImplementationDetail then
-        let local_type ← mkFVar ldecl.fvarId |> inferType >=> whnf
+        let local_type ← ldecl.toExpr |> inferType >=> whnf
         for map in maps do
           if let Expr.forallE _ dom _ _ := ← inferType map then
             if (←isDefEq local_type dom) then
