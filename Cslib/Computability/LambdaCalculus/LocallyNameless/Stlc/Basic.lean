@@ -122,7 +122,7 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
       refine (weaken der ?_).perm perm
       exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
   case abs σ Γ' t T2 xs ih' ih =>
-    apply Typing.abs (xs ∪ {x} ∪ (Δ ++ Γ).dom)
+    apply Typing.abs (free_union Var)
     intros
     rw [subst_def, ←subst_open_var _ _ _ _ ?_ der.lc] <;> grind
 
