@@ -29,7 +29,7 @@ namespace Context
 open List
 
 /-- The domain of a context is the finite set of free variables it uses. -/
-@[simp, grind =]
+@[simp, scoped grind =]
 def dom : Context Var Ty → Finset Var := toFinset ∘ keys
 
 /-- A well-formed context. -/
@@ -45,10 +45,17 @@ theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} : x ∈ Γ.dom ↔ x ∈ Δ.
   induction h <;> simp_all only [dom, Function.comp_apply, mem_toFinset, keys_cons, mem_cons] 
   grind
 
+/-- Context membership implies membership in the domain. -/
 @[scoped grind →]
 theorem dom_mem (mem : ⟨x, σ⟩ ∈ Γ) : x ∈ Γ.dom := by
   simp only [dom, Function.comp_apply, mem_toFinset, keys]
   grind
+
+-- TODO: shouldn't need to restate this, but some downstream grind doesn't work without it
+-- TODO: instead of =, use ∈ notation on option? (may be why grind wasn't working)
+@[scoped grind →]
+theorem of_mem_dlookup (mem : Γ.dlookup x = some T) : ⟨x, T⟩ ∈ Γ := by
+  exact List.of_mem_dlookup mem
 
 omit [DecidableEq Var] in
 /-- Context well-formedness is preserved on permuting a context. -/
