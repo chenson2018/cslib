@@ -40,6 +40,7 @@ inductive Ty (Var : Type u)
   | all : Ty Var → Ty Var → Ty Var
   /-- A sum type. -/
   | sum : Ty Var → Ty Var → Ty Var
+  deriving Inhabited
 
 /-- Syntax of locally nameless lambda terms, with free variables over `Var`. -/
 inductive Term (Var : Type u)
@@ -234,6 +235,7 @@ inductive Binding (Var : Type u) : Type (u + 1)
   | sub : Ty Var → Binding Var
   /-- Type binding. -/
   | ty : Ty Var → Binding Var
+  deriving Inhabited
 
 /-- A context of bindings. -/
 abbrev Env (Var : Type u) := Context Var (Binding Var)
@@ -241,7 +243,7 @@ abbrev Env (Var : Type u) := Context Var (Binding Var)
 /-- A type is well-formed when it is locally closed and all free variables appear in a context. -/
 inductive Ty.wf : Env Var → Ty Var → Prop
   | top : wf E top
-  | var : E.dlookup X = some (Binding.sub U) → wf E (fvar X)
+  | var : Binding.sub U ∈ E[X]? → wf E (fvar X)
   | arrow : wf E T1 → wf E T2 → wf E (arrow T1 T2)
   | all (L : Finset Var) : 
       wf E T1 →
@@ -261,7 +263,7 @@ inductive Env.wf : Env Var → Prop
 inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
   | top : E.wf → S.wf E → Sub E S top
   | refl_tvar : E.wf → (fvar X).wf E → Sub E (fvar X) (fvar X)
-  | trans_tvar : E.dlookup X = some (Binding.sub U) → Sub E U T → Sub E (fvar X) T
+  | trans_tvar : Binding.sub U ∈ E[X]? → Sub E U T → Sub E (fvar X) T
   | arrow : Sub E T1 S1 → Sub E S2 T2 → Sub E (arrow S1 S2) (arrow T1 T2)
   | all (L : Finset Var) :
       Sub E T1 S1 →
@@ -272,7 +274,7 @@ inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
 open Term Ty in
 /-- The typing relation. -/
 inductive Typing : Env Var → Term Var → Ty Var → Prop
-  | var : E.wf → E.dlookup x = some (Binding.ty T) → Typing E (fvar x) T
+  | var : E.wf → Binding.ty T ∈ E[x]? → Typing E (fvar x) T
   | abs (L : Finset Var) :
       (∀ x ∉ L, Typing ([⟨x, Binding.ty V⟩] ++ E) (e1 ^ᵗᵗ fvar x) T1) →
       Typing E (abs V e1) (arrow V T1)

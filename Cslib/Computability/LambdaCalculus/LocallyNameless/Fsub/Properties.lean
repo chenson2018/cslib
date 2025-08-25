@@ -265,12 +265,18 @@ lemma LC (E : Env Var) (T : Ty Var) (T_wf : T.wf E) : T.LC := by
     apply LC.all L <;> grind
   all_goals grind [LC.top, LC.var, LC.arrow, LC.sum]
 
+open List in
 lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E)✓) :
     T.wf (G ++ F ++ E) := by
   generalize eq : G ++ E = F at wf_GE
   induction wf_GE generalizing G 
   case all => sorry
-  case var => sorry
+  case var F' _ X T mem => 
+    subst eq
+    have ok_GE : (G ++ E).NodupKeys := by apply NodupKeys.sublist (l₂ := G ++ F' ++ E) <;> grind
+    have mem_weak : Binding.sub T ∈ (G ++ F' ++ E)[X]? := 
+      sublist_dlookup (G ++ E) (G ++ F' ++ E) ok_GE ok_GFE (by grind) mem
+    exact Ty.wf.var mem_weak
   all_goals grind
 
 lemma weakening_head (T : Ty Var) (E F) (wf_E : T.wf E) (ok_FE : (F ++ E)✓) : T.wf (F ++ E) := by
@@ -325,7 +331,7 @@ lemma ok_from_wf_env (E : Env Var) (wf : E.wf) : E✓ := by
   <;> constructor
   <;> first | assumption | grind [List.append_eq]
 
-lemma wf_typ_from_binds_typ x (U : Ty Var) (E : Env Var) (wf : E.wf) (bind : E.dlookup x = Binding.ty U) :
+lemma wf_typ_from_binds_typ (x : Var) (U : Ty Var) (E : Env Var) (wf : E.wf) (bind : Binding.ty U ∈ E[x]?) :
     U.wf E := sorry
 
 omit [HasFresh Var] in
