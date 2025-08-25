@@ -83,7 +83,18 @@ end LambdaCalculus.LocallyNameless.Context
 
 namespace List
 
-variable {α : Type u} {β : α → Type v} [DecidableEq α]
+variable {α : Type u} {β : α → Type v} 
+
+
+-- not in Mathlib???
+@[grind <=]
+theorem nmem_keys (l₁ l₂ : List (Sigma β)) (nmem₁ : X ∉ l₁.keys) (nmem₂ : X ∉ l₂.keys) :
+    X ∉ (l₁ ++ l₂).keys := by
+  simp only [List.keys, map_append, mem_append, mem_map, Sigma.exists, exists_and_right, 
+    exists_eq_right, not_or, not_exists] at *
+  grind
+
+variable [DecidableEq α]
 
 -- TODO: this should upstream to Mathlib
 theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)

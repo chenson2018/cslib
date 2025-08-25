@@ -265,12 +265,26 @@ lemma LC (E : Env Var) (T : Ty Var) (T_wf : T.wf E) : T.LC := by
     apply LC.all L <;> grind
   all_goals grind [LC.top, LC.var, LC.arrow, LC.sum]
 
+omit [HasFresh Var] in
 open List in
 lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E)✓) :
     T.wf (G ++ F ++ E) := by
   generalize eq : G ++ E = F at wf_GE
   induction wf_GE generalizing G 
-  case all => sorry
+  case all F' W T1 T2 L _ _ ih₁ ih₂ => 
+    subst eq
+    -- TODO: free_union here
+    -- TODO: grind should really pick this all up
+    apply Ty.wf.all (free_union [Context.dom] Var) (ih₁ G ok_GFE rfl)
+    --apply Ty.wf.all ((free_union Var) ∪ (G ++ F' ++ E).dom) (ih₁ G ok_GFE rfl)
+    intros X mem
+    simp only [cons_append, nil_append, append_assoc] at *
+    refine ih₂ X (by grind) ([⟨X, Binding.sub T1⟩] ++ G) ?_ (by grind)
+    rw [Context.haswellformed_def]
+    simp only [cons_append, nil_append, nodupKeys_cons]
+    refine ⟨?_, ok_GFE⟩
+    simp only [Context.dom, Function.comp_apply, Finset.mem_union, mem_toFinset, not_or] at mem
+    grind
   case var F' _ X T mem => 
     subst eq
     have ok_GE : (G ++ E).NodupKeys := by apply NodupKeys.sublist (l₂ := G ++ F' ++ E) <;> grind
@@ -279,6 +293,7 @@ lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E
     exact Ty.wf.var mem_weak
   all_goals grind
 
+omit [HasFresh Var] in
 lemma weakening_head (T : Ty Var) (E F) (wf_E : T.wf E) (ok_FE : (F ++ E)✓) : T.wf (F ++ E) := by
   have : F ++ E = [] ++ F ++ E := by rfl
   grind [Ty.wf.weaken] 
