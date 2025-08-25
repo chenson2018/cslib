@@ -280,8 +280,7 @@ lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E
   all_goals grind
 
 lemma weakening_head (T : Ty Var) (E F) (wf_E : T.wf E) (ok_FE : (F ++ E)✓) : T.wf (F ++ E) := by
-  have : F ++ E = [] ++ F ++ E := by simp
-  rw [this] at *
+  have : F ++ E = [] ++ F ++ E := by rfl
   grind [Ty.wf.weaken] 
 
 -- TODO: I think a cons with Perm would be fine here
