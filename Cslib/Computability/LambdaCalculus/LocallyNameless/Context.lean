@@ -79,6 +79,18 @@ omit [DecidableEq Var] [Inhabited Ty] in
 theorem wf_strengthen (ok : (Δ ++ ⟨x, σ⟩ :: Γ)✓) : (Δ ++ Γ)✓ := by
   exact List.NodupKeys.sublist (by simp) ok
 
+@[simp, scoped grind]
+def map_val (f : Ty → Ty) (Γ : Context Var Ty) : Context Var Ty := 
+  Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
+
+omit [Inhabited Ty] in
+theorem map_val_ok (ok : Γ✓) (f : Ty → Ty) : (Γ.map_val f)✓ := by
+  induction Γ
+  case nil => grind
+  case cons hd tl ih =>
+    cases ok
+    constructor  <;> grind
+
 end LambdaCalculus.LocallyNameless.Context
 
 namespace List
@@ -98,7 +110,7 @@ variable [DecidableEq α]
 
 -- TODO: this should upstream to Mathlib
 theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
-    (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : l₂.dlookup a = some b := by
+    (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
   induction s generalizing a b
   case slnil => exact mem
   case cons p' _ ih =>

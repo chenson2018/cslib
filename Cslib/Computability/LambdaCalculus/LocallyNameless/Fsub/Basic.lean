@@ -247,7 +247,7 @@ inductive Ty.wf : Env Var → Ty Var → Prop
   | arrow : wf E T1 → wf E T2 → wf E (arrow T1 T2)
   | all (L : Finset Var) : 
       wf E T1 →
-      (∀ X ∉ L, wf ([⟨X,Binding.sub T1⟩] ++ E) (T2 ^ᵞ fvar X)) →
+      (∀ X ∉ L, wf (⟨X,Binding.sub T1⟩ :: E) (T2 ^ᵞ fvar X)) →
       wf E (all T1 T2)
   | sum : wf E T1 → wf E T2 → wf E (sum T1 T2)
 
@@ -256,8 +256,8 @@ attribute [scoped grind] Ty.wf.top Ty.wf.var Ty.wf.arrow Ty.wf.sum
 /-- An environment is well-formed if it binds each variable exactly once to a well-formed type. -/
 inductive Env.wf : Env Var → Prop
   | empty : wf []
-  | sub : wf E → T.wf E → X ∉ E.dom → wf ([⟨X, Binding.sub T⟩] ++ E)
-  | ty : wf E → T.wf E → x ∉ E.dom → wf ([⟨x, Binding.ty T⟩] ++ E)
+  | sub : wf E → T.wf E → X ∉ E.dom → wf (⟨X, Binding.sub T⟩ :: E)
+  | ty : wf E → T.wf E → x ∉ E.dom → wf (⟨x, Binding.ty T⟩ :: E)
 
 /-- The subtyping relation. -/
 inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
@@ -267,7 +267,7 @@ inductive Ty.Sub : Env Var → Ty Var → Ty Var → Prop
   | arrow : Sub E T1 S1 → Sub E S2 T2 → Sub E (arrow S1 S2) (arrow T1 T2)
   | all (L : Finset Var) :
       Sub E T1 S1 →
-      (∀ X ∉ L, Sub ([⟨X, Binding.sub T1⟩] ++ E) (S2 ^ᵞ fvar X) (T2 ^ᵞ fvar X)) →
+      (∀ X ∉ L, Sub (⟨X, Binding.sub T1⟩ :: E) (S2 ^ᵞ fvar X) (T2 ^ᵞ fvar X)) →
       Sub E (all S1 S2) (all T1 T2)
   | sum : Sub E S1 T1 → Sub E S2 T2 → Sub E (sum S1 S2) (sum T1 T2)
 
@@ -276,24 +276,24 @@ open Term Ty in
 inductive Typing : Env Var → Term Var → Ty Var → Prop
   | var : E.wf → Binding.ty T ∈ E[x]? → Typing E (fvar x) T
   | abs (L : Finset Var) :
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty V⟩] ++ E) (e1 ^ᵗᵗ fvar x) T1) →
+      (∀ x ∉ L, Typing (⟨x, Binding.ty V⟩ :: E) (e1 ^ᵗᵗ fvar x) T1) →
       Typing E (abs V e1) (arrow V T1)
   | app : Typing E e1 (arrow T1 T2) → Typing E e2 T1 → Typing E (app e1 e2) T2
   | tabs (L : Finset Var) :
-      (∀ X ∉ L, Typing ([⟨X, Binding.sub V⟩] ++ E) (e1 ^ᵗᵞ fvar X) (T1 ^ᵞ fvar X)) →
+      (∀ X ∉ L, Typing (⟨X, Binding.sub V⟩ :: E) (e1 ^ᵗᵞ fvar X) (T1 ^ᵞ fvar X)) →
       Typing E (tabs V e1) (all V T1)
   | tapp : Typing E e1 (all T1 T2) → Sub E T T1 → Typing E (tapp e1 T) (T2 ^ᵞ T)
   | sub : Typing E e S → Sub E S T → Typing E e T
   | let' (L : Finset Var) :
       Typing E e1 T1 →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ᵗᵗ fvar x) T2) →
+      (∀ x ∉ L, Typing (⟨x, Binding.ty T1⟩ :: E) (e2 ^ᵗᵗ fvar x) T2) →
       Typing E (let' e1 e2) T2
   | inl : Typing E e1 T1 → T2.wf E → Typing E (inl e1) (sum T1 T2)
   | inr : Typing E e1 T2 → T1.wf E → Typing E (inr e1) (sum T1 T2)
   | case (L : Finset Var) :
       Typing E e1 (sum T1 T2) →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T1⟩] ++ E) (e2 ^ᵗᵗ fvar x) T) →
-      (∀ x ∉ L, Typing ([⟨x, Binding.ty T2⟩] ++ E) (e3 ^ᵗᵗ fvar x) T) →
+      (∀ x ∉ L, Typing (⟨x, Binding.ty T1⟩ :: E) (e2 ^ᵗᵗ fvar x) T) →
+      (∀ x ∉ L, Typing (⟨x, Binding.ty T2⟩ :: E) (e3 ^ᵗᵗ fvar x) T) →
       Typing E (case e1 e2 e3) T
 
 /-- Values are irreducible terms. -/

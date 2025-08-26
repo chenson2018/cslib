@@ -24,6 +24,9 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
+-- TODO: scoping this
+attribute [grind] Binding.subst_sub Binding.subst_ty
+
 open Ty Term
 
 omit [HasFresh Var] [DecidableEq Var] in
@@ -44,7 +47,7 @@ lemma Ty.openRec_lc (T : Ty Var) U k (lc : T.LC) : T = T⟦k ↝ U⟧ᵞ := by
 
 omit [HasFresh Var] in
 /-- Substitution of a free variable not present in a type leaves it unchanged. -/
-@[scoped grind]
+@[scoped grind <=]
 lemma Ty.subst_fresh (Z : Var) (U T : Ty Var) (nmem : Z ∉ T.fv) : T = T[Z := U] := by
   induction T <;> grind
 
@@ -278,7 +281,7 @@ lemma weaken (T : Ty Var) (E F G) (wf_GE : T.wf (G ++ E)) (ok_GFE : (G ++ F ++ E
     apply Ty.wf.all (free_union [Context.dom] Var) (ih₁ G ok_GFE rfl)
     --apply Ty.wf.all ((free_union Var) ∪ (G ++ F' ++ E).dom) (ih₁ G ok_GFE rfl)
     intros X mem
-    simp only [cons_append, nil_append, append_assoc] at *
+    simp only [append_assoc] at *
     refine ih₂ X (by grind) ([⟨X, Binding.sub T1⟩] ++ G) ?_ (by grind)
     rw [Context.haswellformed_def]
     simp only [cons_append, nil_append, nodupKeys_cons]
@@ -340,6 +343,7 @@ end Ty.wf
 open Context
 
 omit [HasFresh Var] in
+@[grind →]
 lemma ok_from_wf_env (E : Env Var) (wf : E.wf) : E✓ := by
   induction wf 
   <;> constructor
@@ -370,7 +374,7 @@ lemma wf_env_narrowing (V : Ty Var) (E : Env Var) F (U : Ty Var) X
     constructor <;> assumption
   case cons => sorry
 
-lemma wf_env_strengthening x (T : Ty Var) (E F : Env Var) (wf : Env.wf (F ++ [⟨x, Binding.ty T⟩] ++ E)) :
+lemma wf_env_strengthening x (T : Ty Var) (E F : Env Var) (wf : Env.wf (F ++ ⟨x, Binding.ty T⟩ :: E)) :
     (F ++ E).wf := by
   induction F generalizing E
   case nil =>
@@ -401,31 +405,24 @@ lemma notin_fv_tt_open (Y X : Var) (T : Ty Var) (nmem : X ∉ (T ^ᵞ fvar Y).fv
   case all => sorry
   all_goals grind
 
+@[grind →]
 lemma notin_fv_wf (E : Env Var) (X : Var) (T : Ty Var) (wf : T.wf E) (nmem : X ∉ E.dom) : 
     X ∉ T.fv := by
   induction wf
   case all => sorry
   all_goals grind
 
+open List in
 lemma map_subst_tb_id (G : Env Var) (Z : Var) (P : Ty Var) (wf : G.wf) (nmem : Z ∉ G.dom) :
-    G = G.map (fun ⟨x, σ⟩ => (⟨x, σ[Z:=P]⟩ : ((_ : Var) × Binding Var))) := by
+    G = G.map_val (·[Z:=P]) := by
   induction wf
   case empty => grind
-  case sub E _ T _ wf _ ih =>
+  case sub E _ T _ wf _ ih | ty E _ T _ wf _ ih =>
     have Z_nmem_E_dom : Z ∉ E.dom := by
-       simp_all only [dom, List.cons_append, List.nil_append, Function.comp_apply, List.keys_cons,
-         List.toFinset_cons, Finset.mem_insert, List.mem_toFinset, not_or]
-       exact not_false        
-    rw [ih Z_nmem_E_dom]
-    simp only [List.cons_append, List.nil_append, List.map_cons, List.map_map, List.cons.injEq,
-      Sigma.mk.injEq, heq_eq_eq, true_and, List.map_inj_left, Function.comp_apply]
-    constructor
-    · simp only [Binding.subst_sub]
-      apply congrArg
-      apply Ty.subst_fresh
-      apply notin_fv_wf _ _ _ wf Z_nmem_E_dom
-    · sorry
-  case ty => sorry    
+       simp only [dom, Function.comp_apply, keys_cons, toFinset_cons, Finset.mem_insert] at nmem
+       push_neg at nmem
+       exact nmem.right -- TODO: why can't grind see this??
+    grind
 
 lemma sub_regular (E : Env Var) (S T : Ty Var) (sub : Sub E S T) : E.wf ∧ S.wf E ∧ T.wf E := sorry
 
