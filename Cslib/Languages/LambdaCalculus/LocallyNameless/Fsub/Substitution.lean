@@ -244,4 +244,25 @@ lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
 
 end Term
 
+namespace Binding
+
+/-- Binding substitution of types. -/
+@[scoped grind =]
+def subst (X : Var) (δ : Ty Var) : Binding Var → Binding Var
+| sub γ => sub <| γ[X := δ]
+| ty  γ => ty  <| γ[X := δ]
+
+instance : HasSubstitution (Binding Var) Var (Ty Var) where
+  subst γ X δ := Binding.subst X δ γ
+
+variable {δ γ : Ty Var} {X : Var}
+
+@[grind _=_]
+lemma subst_sub : (sub γ)[X := δ] = sub (γ[X := δ]) := by rfl
+
+@[grind _=_]
+lemma subst_ty : (ty γ)[X := δ] = ty (γ[X := δ]) := by rfl
+
+end Binding
+
 end LambdaCalculus.LocallyNameless.Fsub
