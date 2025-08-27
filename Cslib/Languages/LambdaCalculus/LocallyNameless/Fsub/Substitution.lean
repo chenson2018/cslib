@@ -257,10 +257,10 @@ instance : HasSubstitution (Binding Var) Var (Ty Var) where
 
 variable {δ γ : Ty Var} {X : Var}
 
-@[grind _=_]
+@[scoped grind _=_]
 lemma subst_sub : (sub γ)[X := δ] = sub (γ[X := δ]) := by rfl
 
-@[grind _=_]
+@[scoped grind _=_]
 lemma subst_ty : (ty γ)[X := δ] = ty (γ[X := δ]) := by rfl
 
 end Binding
