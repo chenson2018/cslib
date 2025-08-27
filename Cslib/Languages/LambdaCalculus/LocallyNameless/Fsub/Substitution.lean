@@ -81,6 +81,14 @@ lemma openRec_subst_intro (Y : ℕ) (δ : Ty Var) (nmem : X ∉ γ.fv) :
 lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^ᵞ fvar X)[X := δ] := 
   openRec_subst_intro _ _ nmem
 
+variable [HasFresh Var]
+
+@[scoped grind =>]
+lemma subst_lc (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
+  induction σ_lc
+  case all => apply LC.all (free_union Var) <;> grind
+  all_goals grind 
+
 end Ty
 
 namespace Term
@@ -211,7 +219,6 @@ lemma open_ty_subst_tm (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
 lemma open_ty_subst_tm_var (t : Term Var) (lc : s.LC) (x Y : Var) :
     (t ^ᵗᵞ .fvar Y)[x := s] = t[x := s] ^ᵗᵞ .fvar Y := open_ty_subst_tm _ _ lc _
 
-
 omit [HasFresh Var]
 
 /-- Opening a term to a term is equivalent to opening to a free variable and substituting. -/
@@ -222,6 +229,18 @@ lemma openRec_tm_subst_tm_intro (y : ℕ) (t s : Term Var) (nmem : x ∉ t.fv_tm
 /-- Specialize `Term.openRec_tm_subst_tm_intro` to the first opening. -/
 lemma open_tm_subst_tm_intro (t s : Term Var) (nmem : x ∉ t.fv_tm) :
     t ^ᵗᵗs = (t ^ᵗᵗ fvar x)[x := s] := openRec_tm_subst_tm_intro _ _ _ nmem
+
+variable [HasFresh Var]
+
+lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
+  induction t_lc
+  case abs | tabs | let' | case => sorry
+  all_goals grind
+
+lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
+  induction t_lc
+  case abs | tabs | let' | case => sorry
+  all_goals grind
 
 end Term
 

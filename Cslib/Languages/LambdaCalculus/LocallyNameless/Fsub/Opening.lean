@@ -60,6 +60,8 @@ inductive LC : Ty Var → Prop
   | all (L : Finset Var) : LC σ → (∀ X ∉ L, LC (τ ^ᵞ fvar X)) → LC (all σ τ)
   | sum : LC σ → LC τ → LC (sum σ τ)
 
+attribute [scoped grind] LC.top LC.var LC.arrow LC.sum
+
 variable [HasFresh Var] [DecidableEq Var]
 
 /-- A locally closed type is unchanged by opening. -/
@@ -145,6 +147,8 @@ inductive LC : Term Var → Prop
       (∀ x ∉ L, LC (t₂ ^ᵗᵗ fvar x)) →
       (∀ x ∉ L, LC (t₃ ^ᵗᵗ fvar x)) →
       LC (case t₁ t₂ t₃)
+
+attribute [scoped grind] LC.var LC.app LC.inl LC.inr LC.tapp
 
 variable {t s : Term Var} {x y X Y : ℕ} {σ δ : Ty Var}
 
