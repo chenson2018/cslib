@@ -40,6 +40,10 @@ instance : HasWellFormed (Context Var Ty) :=
 
 variable {Γ Δ : Context Var Ty}
 
+omit [DecidableEq Var] in
+@[grind _=_]
+theorem haswellformed_def : Γ✓ = Γ.NodupKeys := by rfl
+
 /-- Context membership is preserved on permuting a context. -/
 theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} : x ∈ Γ.dom ↔ x ∈ Δ.dom := by
   induction h <;> simp_all only [dom, Function.comp_apply, mem_toFinset, keys_cons, mem_cons] 
@@ -57,3 +61,31 @@ theorem wf_strengthen (ok : (Δ ++ ⟨x, σ⟩ :: Γ)✓) : (Δ ++ Γ)✓ := by
   exact List.NodupKeys.sublist (by simp) ok
 
 end LambdaCalculus.LocallyNameless.Context
+
+namespace List
+
+variable {α : Type u} {β : α → Type v} 
+
+variable [DecidableEq α]
+
+-- TODO: this should upstream to Mathlib
+@[grind]
+theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
+    (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
+  induction s generalizing a b
+  case slnil => exact mem
+  case cons p' _ ih =>
+    obtain ⟨a', b'⟩ := p'
+    have : a ≠ a' := by
+      have := ih nd₁ ?_ mem |> of_mem_dlookup |> mem_keys_of_mem
+      all_goals grind [nodupKeys_cons]
+    simp_all
+  case cons₂ p' _ ih =>
+    obtain ⟨a', b'⟩ := p'
+    by_cases h : a = a'
+    · subst h
+      rw [List.dlookup_cons_eq] at *
+      exact mem
+    · simp_all
+
+end List

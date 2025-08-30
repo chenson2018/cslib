@@ -108,4 +108,7 @@ def Term.fv_tm : Term Var → Finset Var
 | app t₁ t₂ | let' t₁ t₂ => t₁.fv_tm ∪ t₂.fv_tm
 | case t₁ t₂ t₃ => t₁.fv_tm ∪ t₂.fv_tm ∪ t₃.fv_tm
 
+/-- A context of bindings. -/
+abbrev Env (Var : Type u) := Context Var (Binding Var)
+
 end LambdaCalculus.LocallyNameless.Fsub
