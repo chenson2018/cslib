@@ -60,6 +60,17 @@ omit [DecidableEq Var] in
 theorem wf_strengthen (ok : (Δ ++ ⟨x, σ⟩ :: Γ)✓) : (Δ ++ Γ)✓ := by
   exact List.NodupKeys.sublist (by simp) ok
 
+@[simp, scoped grind]
+def map_val (f : Ty → Ty) (Γ : Context Var Ty) : Context Var Ty := 
+  Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
+
+theorem map_val_ok (ok : Γ✓) (f : Ty → Ty) : (Γ.map_val f)✓ := by
+  induction Γ
+  case nil => grind
+  case cons hd tl ih =>
+    cases ok
+    constructor <;> grind
+
 end LambdaCalculus.LocallyNameless.Context
 
 namespace List

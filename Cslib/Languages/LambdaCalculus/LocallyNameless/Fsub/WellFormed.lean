@@ -6,6 +6,7 @@ Authors: Chris Henson
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
+import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Substitution
 
 /-! # λ-calculus
 
@@ -22,7 +23,7 @@ This file defines the well-formedness condition for types and contexts.
 
 universe u
 
-variable {Var : Type u} [DecidableEq Var]
+variable {Var : Type u} [DecidableEq Var] [HasFresh Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
@@ -50,7 +51,7 @@ namespace Ty.Wf
 
 open List
 
-variable {Γ Δ Θ : Env Var} {σ τ τ' : Ty Var}
+variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 
 theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓) : σ.Wf Δ := by
   induction wf generalizing Δ 
@@ -87,14 +88,24 @@ theorem weaken_head (wf : σ.Wf Γ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := b
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]  
 
+lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (ok : (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ)✓)
+  : σ.Wf (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ) := sorry
+
+lemma strengthen (wf : σ.Wf (Γ ++ [⟨x, Binding.ty U⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := sorry
+
+lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Γ) : 
+    (σ[X:=τ']).Wf <| (Γ ++ Δ).map_val (·[X:=τ']) := 
+  sorry
+
+lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
+  cases wf_all with | all L σ_wf cofin => sorry
+
+@[grind →]
+lemma to_ok (wf : Γ.Wf) : Γ✓ := 
+  sorry
+
 variable [HasFresh Var]
 
 end Ty.Wf
-
-namespace Term
-
-open scoped Ty
-
-end Term
 
 end LambdaCalculus.LocallyNameless.Fsub
