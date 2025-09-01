@@ -30,7 +30,7 @@ open List
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp, grind =]
-def dom : Context Var Ty → Finset Var := toFinset ∘ keys
+def dom (Γ : Context Var Ty) : Finset Var := Γ.keys.toFinset
 
 /-- A well-formed context. -/
 abbrev Ok : Context Var Ty → Prop := NodupKeys
@@ -44,9 +44,15 @@ omit [DecidableEq Var] in
 @[grind _=_]
 theorem haswellformed_def : Γ✓ = Γ.NodupKeys := by rfl
 
+/-- Context membership implies membership in the domain. -/
+@[scoped grind →]
+theorem dom_mem (mem : ⟨x, σ⟩ ∈ Γ) : x ∈ Γ.dom := by
+  simp only [dom, mem_toFinset, keys]
+  grind
+
 /-- Context membership is preserved on permuting a context. -/
 theorem dom_perm_mem_iff (h : Γ.Perm Δ) {x : Var} : x ∈ Γ.dom ↔ x ∈ Δ.dom := by
-  induction h <;> simp_all only [dom, Function.comp_apply, mem_toFinset, keys_cons, mem_cons] 
+  induction h <;> simp_all only [dom, mem_toFinset, keys_cons, mem_cons] 
   grind
 
 omit [DecidableEq Var] in
