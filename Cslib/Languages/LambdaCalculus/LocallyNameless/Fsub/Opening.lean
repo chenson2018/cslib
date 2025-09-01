@@ -217,13 +217,6 @@ lemma openRec_ty_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
   case abs | tabs | let' | case => sorry
   all_goals grind
 
-/-- A locally closed term is unchanged by term opening. -/
-@[scoped grind]
-lemma openRec_tm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
-  induction t generalizing x
-  case abs  | tabs | let' | case => sorry
-  all_goals grind
-
 /-- Substitution of a type within a term. -/
 @[scoped grind =]
 def subst_ty (X : Var) (δ : Ty Var) : Term Var → Term Var
@@ -295,13 +288,31 @@ instance : HasSubstitution (Term Var) Var (Term Var) where
 @[scoped grind _=_]
 lemma subst_tm_def : subst_tm (x : Var) (s : Term Var) (t : Term Var) = t[x := s] := by rfl
 
+omit [DecidableEq Var] in
+/-- An opening (term to term) appearing in both sides of an equality of terms can be removed. -/
+@[scoped grind]
+lemma openRec_tm_neq_eq (neq : x ≠ y) (eq : t⟦y ↝ s₁⟧ᵗᵗ = t⟦y ↝ s₁⟧ᵗᵗ⟦x ↝ s₂⟧ᵗᵗ) : 
+    t = t⟦x ↝ s₂⟧ᵗᵗ := by
+  induction t generalizing x y <;> grind
+
+omit [DecidableEq Var] in
+/-- Elimination of mixed term and type opening. -/
+@[scoped grind]
+lemma openRec_ty_tm_eq (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦x ↝ s⟧ᵗᵗ) : t = t⟦x ↝ s⟧ᵗᵗ := by
+  induction t generalizing x Y <;> grind
+
+/-- A locally closed term is unchanged by term opening. -/
+@[scoped grind]
+lemma openRec_tm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
+  induction t generalizing x
+  case abs  | tabs | let' | case => sorry
+  all_goals grind
+
 variable {t s : Term Var} {δ : Ty Var} {x : Var}
 
 /-- Substitution of a free term variable not present in a term leaves it unchanged. -/
 lemma subst_tm_fresh (nmem : x ∉ t.fv_tm) (s : Term Var) : t = t[x := s] := by
   induction t <;> grind
-
-variable [HasFresh Var]
 
 /-- Substitution of a locally closed term distributes with term opening to a term. -/
 lemma openRec_tm_subst_tm (y : ℕ) (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
@@ -328,6 +339,8 @@ lemma open_tm_subst_ty (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
 /-- Specialize `Term.open_tm_subst_ty` to free term variables -/
 lemma open_tm_subst_ty_var (t₁ : Term Var) (δ : Ty Var) (X y : Var) :
     (t₁ ^ᵗᵗ fvar y)[X := δ] = (t₁[X := δ]) ^ᵗᵗ fvar y := by grind [open_tm_subst_ty]
+
+variable [HasFresh Var]
 
 /-- Substitution of a locally closed term distributes with term opening to a type. -/
 lemma openRec_ty_subst_tm (Y : ℕ) (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
