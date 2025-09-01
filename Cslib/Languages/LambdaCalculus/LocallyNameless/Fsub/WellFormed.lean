@@ -6,7 +6,6 @@ Authors: Chris Henson
 
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Basic
 import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Opening
-import Cslib.Languages.LambdaCalculus.LocallyNameless.Fsub.Substitution
 
 /-! # λ-calculus
 
@@ -54,6 +53,7 @@ open List
 
 variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 
+omit [HasFresh Var] in
 theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓) : σ.Wf Δ := by
   induction wf generalizing Δ 
   case all σ τ _ _ _ _ ih => 
@@ -64,12 +64,14 @@ theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓
     all_goals simp at mem; grind
   all_goals grind [perm_dlookup]
 
+omit [HasFresh Var] in
 theorem lc (wf : σ.Wf Γ) : σ.LC := by
   induction wf
   -- TODO: how to get grind to do this???
   case all => apply LC.all (free_union Var) <;> grind
   all_goals grind
 
+omit [HasFresh Var] in
 theorem weaken (wf_ΓΔ : σ.Wf (Γ ++ Δ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
   generalize eq : Γ ++ Δ = ΓΔ at wf_ΓΔ
   induction wf_ΓΔ generalizing Γ 
@@ -85,11 +87,13 @@ theorem weaken (wf_ΓΔ : σ.Wf (Γ ++ Δ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : 
     grind [NodupKeys.sublist]
   all_goals grind
 
+omit [HasFresh Var] in
 theorem weaken_head (wf : σ.Wf Γ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]  
 
-lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (ok : (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ)✓) : 
+lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
+  (ok : (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ)✓) : 
     σ.Wf (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ) := by
   generalize eq : (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ) = Θ at wf
   induction wf generalizing Γ
@@ -115,6 +119,7 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' 
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
   cases wf_all with | all L σ_wf cofin => sorry
 
+omit [HasFresh Var] in
 @[grind]
 lemma to_ok (wf : Γ.Wf) : Γ✓ := by
   induction wf <;> constructor <;> first | assumption | grind
@@ -122,10 +127,12 @@ lemma to_ok (wf : Γ.Wf) : Γ✓ := by
 lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := 
   sorry
  
+omit [HasFresh Var] in
 lemma from_env_bind_ty (wf : Env.Wf ([⟨X, Binding.ty σ⟩] ++ Γ)) : σ.Wf Γ := by
   cases wf
   assumption
 
+omit [HasFresh Var] in
 lemma from_env_bind_sub (wf : Env.Wf ([⟨X, Binding.sub σ⟩] ++ Γ)) : σ.Wf Γ := by
   cases wf
   assumption
