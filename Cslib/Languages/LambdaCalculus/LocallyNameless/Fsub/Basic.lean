@@ -90,6 +90,11 @@ def Ty.fv : Ty Var → Finset Var
 | fvar X => {X}
 | arrow σ τ | all σ τ | sum σ τ => σ.fv ∪ τ.fv
 
+/-- Free variables of a binding. -/
+@[scoped grind =]
+def Binding.fv : Binding Var → Finset Var
+| sub σ | ty σ => σ.fv
+
 /-- Free type variables of a term. -/
 @[scoped grind =]
 def Term.fv_ty : Term Var → Finset Var

@@ -118,7 +118,33 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' 
   all_goals grind
 
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
-  cases wf_all with | all L σ_wf cofin => sorry
+  cases wf_all with | all L σ_wf cofin => 
+    let ⟨X,mem⟩ := fresh_exists <| free_union [fv, Context.dom] Var
+    rw [open_subst_intro (X := X) _ (by grind)]
+    -- TODO: X can be selected to make this true, but I need to work with the union of free
+    -- variables of all context values.
+    have : Γ = Γ.map_val (·[X:=δ]) := by
+      sorry
+    have eq : Γ = Context.map_val (·[X:=δ]) (Γ ++ []) := by grind
+    rw [eq]
+    apply map_subst (τ := σ)
+    · simp at *
+      -- TODO: make this shorter... there are still problems with Context.dom and grind
+      have ok_cons : (⟨X, Binding.sub σ⟩ :: Γ)✓ := by
+        constructor
+        simp
+        intro _ _ mem' eq
+        subst eq
+        have p := Context.dom_mem mem'
+        have np := mem.left
+        simp [Context.dom] at p
+        contradiction
+        exact ok_Γ
+      have perm : List.Perm (⟨X, Binding.sub σ⟩ :: Γ) (Γ ++ [⟨X, Binding.sub σ⟩]) := by
+        exact Perm.symm (perm_append_singleton ⟨X, Binding.sub σ⟩ Γ)
+      specialize cofin X (by grind)
+      apply perm_env ?_ perm <;> grind
+    · assumption
 
 omit [HasFresh Var] in
 @[grind]

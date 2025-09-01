@@ -414,6 +414,12 @@ lemma subst_sub : (sub γ)[X := δ] = sub (γ[X := δ]) := by rfl
 @[scoped grind _=_]
 lemma subst_ty : (ty γ)[X := δ] = ty (γ[X := δ]) := by rfl
 
+open scoped Ty in
+/-- Substitution of a free variable not present in a binding leaves it unchanged. -/
+@[scoped grind <=]
+lemma subst_fresh {γ : Binding Var} (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = γ[X := δ] := by
+  induction γ <;> grind
+
 end Binding
 
 end LambdaCalculus.LocallyNameless.Fsub
