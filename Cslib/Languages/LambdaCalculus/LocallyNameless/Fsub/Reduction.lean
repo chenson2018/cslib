@@ -23,6 +23,7 @@ universe u
 
 variable {Var : Type u}
 
+
 namespace LambdaCalculus.LocallyNameless.Fsub
 
 namespace Term
@@ -31,6 +32,42 @@ namespace Term
 @[scoped grind =]
 def body (t : Term Var) := ∃ L : Finset Var, ∀ x ∉ L, LC (t ^ᵗᵗ fvar x)
 
+section
+
+variable {t₁ t₂ t₃ : Term Var}
+
+lemma body_from_lc_let (lc : (let' t₁ t₂).LC) : t₂.body := by
+  cases lc with | let' L => exists L 
+
+lemma body_inl_from_lc_case (lc : (case t₁ t₂ t₃).LC) : t₂.body := by
+  cases lc with | case L => exists L
+
+lemma body_inr_from_lc_case (lc : (case t₁ t₂ t₃).LC) : t₃.body := by
+  cases lc with | case L => exists L
+
+variable [DecidableEq Var]
+
+@[scoped grind <=]
+lemma lc_let_from_body (lc : t₁.LC) (body : t₂.body) : (let' t₁ t₂).LC := by
+  obtain ⟨_, _⟩ := body
+  apply LC.let' (free_union Var) <;> grind
+
+@[scoped grind <=]
+lemma lc_case_from_body (lc : t₁.LC) (body₂ : t₂.body) (body₃ : t₃.body) : (case t₁ t₂ t₃).LC := by
+  obtain ⟨_, _⟩ := body₂
+  obtain ⟨_, _⟩ := body₃
+  apply LC.case (free_union Var) <;> grind
+
+variable [HasFresh Var]
+
+@[grind <=]
+lemma open_tm_body (body : t₁.body) (lc : t₂.LC) : (t₁ ^ᵗᵗ t₂).LC := by
+  obtain ⟨_, _⟩ := body
+  let ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
+  grind [open_tm_subst_tm_intro]
+
+end
+
 /-- Values are irreducible terms. -/
 inductive Value : Term Var → Prop
   | abs : LC (abs σ t₁) → Value (abs σ t₁)
@@ -38,6 +75,7 @@ inductive Value : Term Var → Prop
   | inl : Value t₁ → Value (inl t₁)
   | inr : Value t₁ → Value (inr t₁)
 
+@[grind →]
 lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by
   induction val <;> grind
 
@@ -46,8 +84,8 @@ inductive Red : Term Var → Term Var → Prop
   | appₗ : LC t₂ → Red t₁ t₁' → Red (app t₁ t₂) (app t₁' t₂)
   | appᵣ : Value t₁ → Red t₂ t₂' → Red (app t₁ t₂) (app t₁ t₂')
   | tapp : σ.LC → Red t₁ t₁' → Red (tapp t₁ σ) (tapp t₁' σ)
-  | abs : LC (abs T t₁) → Value t₂ → Red (app (abs T t₁) t₂) (t₁ ^ᵗᵗ t₂)
-  | tabs : LC (tabs T1 t₁) → T2.LC → Red (tapp (tabs T1 t₁) T2) (t₁ ^ᵗᵞ T2)
+  | abs : LC (abs σ t₁) → Value t₂ → Red (app (abs σ t₁) t₂) (t₁ ^ᵗᵗ t₂)
+  | tabs : LC (tabs σ t₁) → τ.LC → Red (tapp (tabs σ t₁) τ) (t₁ ^ᵗᵞ τ)
   | let_bind : Red t₁ t₁' → t₂.body → Red (let' t₁ t₂) (let' t₁' t₂)
   | let_body : Value t₁ → t₂.body → Red (let' t₁ t₂) (t₂ ^ᵗᵗ t₁)
   | inl : Red t₁ t₁' → Red (inl t₁) (inl t₁')
@@ -56,9 +94,25 @@ inductive Red : Term Var → Term Var → Prop
   | case_inl : Value t₁ → t₂.body → t₃.body → Red (case (inl t₁) t₂ t₃) (t₂ ^ᵗᵗ t₁)
   | case_inr : Value t₁ → t₂.body → t₃.body → Red (case (inr t₁) t₂ t₃) (t₃ ^ᵗᵗ t₁)
 
-lemma Red.lc {t t' : Term Var} (red : Red t t') : t.LC ∧ t'.LC :=
-  sorry
-
+-- TODO: maybe better to split this up???
+-- TODO: also could grind open_tm_subst_tm_intro and open_ty_subst_ty_intro, I should try a pattern
+variable [HasFresh Var] [DecidableEq Var] in
+lemma Red.lc {t t' : Term Var} (red : Red t t') : t.LC ∧ t'.LC := by
+  induction red
+  case abs lc _ => 
+    -- TODO: this is a bit annoying because doing cases too early makes grind fail 
+    split_ands
+    · grind
+    · cases lc
+      let ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
+      grind [open_tm_subst_tm_intro]
+  case tabs lc _ => 
+    split_ands
+    · grind
+    · cases lc
+      let ⟨_, _⟩ := fresh_exists <| free_union [fv_ty] Var
+      grind [open_ty_subst_ty_intro]
+  all_goals grind
 end Term
 
 end LambdaCalculus.LocallyNameless.Fsub

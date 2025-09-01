@@ -371,6 +371,7 @@ lemma open_tm_subst_tm_intro (t s : Term Var) (nmem : x ∉ t.fv_tm) :
 
 variable [HasFresh Var]
 
+@[grind <=]
 lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
   induction t_lc
   -- TODO: find a way to incorporate this into a tactic...
@@ -380,6 +381,7 @@ lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
   case case => apply LC.case (free_union Var) <;> grind
   all_goals grind
 
+@[grind <=]
 lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
   induction t_lc
   -- TODO: find a way to incorporate this into a tactic...
