@@ -98,21 +98,21 @@ inductive Red : Term Var → Term Var → Prop
 -- TODO: also could grind open_tm_subst_tm_intro and open_ty_subst_ty_intro, I should try a pattern
 variable [HasFresh Var] [DecidableEq Var] in
 lemma Red.lc {t t' : Term Var} (red : Red t t') : t.LC ∧ t'.LC := by
-  induction red with
-  | abs lc _ => 
+  induction red
+  case abs lc _ => 
     -- TODO: this is a bit annoying because doing cases too early makes grind fail 
     split_ands
     · grind
     · cases lc
       let ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
       grind [open_tm_subst_tm_intro]
-  | tabs lc _ => 
+  case tabs lc _ => 
     split_ands
     · grind
     · cases lc
       let ⟨_, _⟩ := fresh_exists <| free_union [fv_ty] Var
       grind [open_ty_subst_ty_intro]
-  | _ => grind
+  all_goals grind
 end Term
 
 end LambdaCalculus.LocallyNameless.Fsub

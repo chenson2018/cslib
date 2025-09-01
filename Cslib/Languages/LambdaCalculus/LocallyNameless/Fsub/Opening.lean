@@ -97,7 +97,8 @@ lemma subst_fresh (nmem : X ∉ γ.fv) (δ : Ty Var) : γ = γ[X := δ] := by
 @[scoped grind]
 lemma openRec_subst (Y : ℕ) (σ τ : Ty Var) (lc : δ.LC) (X : Var) : 
     (σ⟦Y ↝ τ⟧ᵞ)[X := δ] = σ[X := δ]⟦Y ↝ τ[X := δ]⟧ᵞ := by
-  induction σ generalizing Y <;> grind
+  induction σ generalizing Y
+  all_goals grind
 
 /-- Specialize `Ty.openRec_subst` to the first opening. -/
 lemma open_subst (σ τ : Ty Var) (lc : δ.LC) (X : Var) : (σ ^ᵞ τ)[X := δ] = σ[X := δ] ^ᵞ τ[X := δ]
@@ -121,9 +122,9 @@ lemma open_subst_intro (δ : Ty Var) (nmem : X ∉ γ.fv) : γ ^ᵞ δ = (γ ^�
 
 @[scoped grind =>]
 lemma subst_lc (σ_lc : σ.LC) (τ_lc : τ.LC) (X : Var) : σ[X := τ].LC := by
-  induction σ_lc with
-  | all => apply LC.all (free_union Var) <;> grind
-  | _   => grind 
+  induction σ_lc
+  case all => apply LC.all (free_union Var) <;> grind
+  all_goals grind 
 
 end Ty
 
@@ -212,9 +213,9 @@ lemma openRec_tm_ty_eq (eq : t⟦x ↝ s⟧ᵗᵗ = t⟦x ↝ s⟧ᵗᵗ⟦y ↝
 /-- A locally closed term is unchanged by type opening. -/
 @[scoped grind]
 lemma openRec_ty_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
-  induction t generalizing X with
-  | abs | tabs | let' | case => sorry
-  | _ => grind
+  induction t generalizing X
+  case abs | tabs | let' | case => sorry
+  all_goals grind
 
 /-- Substitution of a type within a term. -/
 @[scoped grind =]
@@ -303,9 +304,9 @@ lemma openRec_ty_tm_eq (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦x �
 /-- A locally closed term is unchanged by term opening. -/
 @[scoped grind]
 lemma openRec_tm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
-  induction t generalizing x with
-  | abs  | tabs | let' | case => sorry
-  | _ => grind
+  induction t generalizing x
+  case abs  | tabs | let' | case => sorry
+  all_goals grind
 
 variable {t s : Term Var} {δ : Ty Var} {x : Var}
 
@@ -372,23 +373,23 @@ variable [HasFresh Var]
 
 @[grind <=]
 lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
+  induction t_lc
   -- TODO: find a way to incorporate this into a tactic...
-  induction t_lc with
-  | abs  => apply LC.abs (free_union Var) <;> grind
-  | tabs => apply LC.tabs (free_union Var) <;> grind
-  | let' => apply LC.let' (free_union Var) <;> grind
-  | case => apply LC.case (free_union Var) <;> grind
-  | _ => grind
+  case abs  => apply LC.abs (free_union Var) <;> grind
+  case tabs => apply LC.tabs (free_union Var) <;> grind
+  case let' => apply LC.let' (free_union Var) <;> grind
+  case case => apply LC.case (free_union Var) <;> grind
+  all_goals grind
 
 @[grind <=]
 lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
+  induction t_lc
   -- TODO: find a way to incorporate this into a tactic...
-  induction t_lc with
-  | abs  => apply LC.abs (free_union Var) <;> grind
-  | let' => apply LC.let' (free_union Var) <;> grind
-  | case => apply LC.case (free_union Var) <;> grind
-  | tabs => apply LC.tabs (free_union Var) <;> grind
-  | _ => grind
+  case abs  => apply LC.abs (free_union Var) <;> grind
+  case let' => apply LC.let' (free_union Var) <;> grind
+  case case => apply LC.case (free_union Var) <;> grind
+  case tabs => apply LC.tabs (free_union Var) <;> grind
+  all_goals grind
 
 end Term
 

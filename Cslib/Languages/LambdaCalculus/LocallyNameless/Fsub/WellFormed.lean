@@ -56,21 +56,21 @@ variable {Γ Δ Θ : Env Var} {σ τ τ' γ δ : Ty Var}
 
 omit [HasFresh Var] in
 theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓) : σ.Wf Δ := by
-  induction wf generalizing Δ with
-  | all _ _ _ _ ih => 
+  induction wf generalizing Δ 
+  case all σ τ _ _ _ _ ih => 
     apply all (free_union [Context.dom] Var) (by grind)
     intro X mem
     refine ih _ ?_ (Perm.cons _ perm) (nodupKeys_cons.mpr ?_) (nodupKeys_cons.mpr ?_)
     -- TODO: understand why we need simp here
     all_goals simp at mem; grind
-  | _ => grind [perm_dlookup]
+  all_goals grind [perm_dlookup]
 
 omit [HasFresh Var] in
 theorem lc (wf : σ.Wf Γ) : σ.LC := by
+  induction wf
   -- TODO: how to get grind to do this???
-  induction wf with
-  | all => apply LC.all (free_union Var) <;> grind
-  | _   => grind
+  case all => apply LC.all (free_union Var) <;> grind
+  all_goals grind
 
 omit [HasFresh Var] in
 theorem weaken (wf_ΓΔ : σ.Wf (Γ ++ Δ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
@@ -97,25 +97,25 @@ lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
   (ok : (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ)✓) : 
     σ.Wf (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ) := by
   generalize eq : (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ) = Θ at wf
-  induction wf generalizing Γ with
-  | var => sorry
-  | all => sorry
-  | _ => grind
+  induction wf generalizing Γ
+  case var => sorry
+  case all => sorry
+  all_goals grind
 
 lemma strengthen (wf : σ.Wf (Γ ++ [⟨x, Binding.ty U⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
   generalize eq : Γ ++ [⟨x, Binding.ty U⟩] ++ Δ = Θ at wf
-  induction wf generalizing Γ with
-  | var => sorry
-  | all => sorry
-  | _ => grind
+  induction wf generalizing Γ
+  case var => sorry
+  case all => sorry
+  all_goals grind
 
 lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Γ) : 
     (σ[X:=τ']).Wf <| (Γ ++ Δ).map_val (·[X:=τ']) := by
   generalize eq : Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ = Θ at wf_σ
-  induction wf_σ generalizing Γ τ' with
-  | var => sorry
-  | all => sorry
-  | _ => grind
+  induction wf_σ generalizing Γ τ'
+  case var => sorry
+  case all => sorry
+  all_goals grind
 
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
   cases wf_all with | all L σ_wf cofin => sorry
@@ -168,9 +168,9 @@ end Env.Wf
 -- TODO : move these up???
 open scoped Ty in
 lemma Ty.nmem_fv_tm_open {σ : Ty Var} {X : Var} (nmem : X ∉ (σ ^ᵞ Y).fv) : X ∉ σ.fv := by
-  induction σ generalizing X Y with
-  | all => sorry
-  | _ => simp [fv, open'] at * <;> grind
+  induction σ generalizing X Y 
+  case all => sorry
+  all_goals simp [fv, open'] at * <;> grind
 
 @[grind →]
 lemma Ty.wf.nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := 
