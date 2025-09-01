@@ -41,6 +41,7 @@ inductive Ty.Wf : Env Var → Ty Var → Prop
 attribute [scoped grind] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
 
 /-- An environment is well-formed if it binds each variable exactly once to a well-formed type. -/
+@[grind]
 inductive Env.Wf : Env Var → Prop
   | empty : Wf []
   | sub : Wf Γ → T.Wf Γ → X ∉ Γ.dom → Wf (⟨X, Binding.sub T⟩ :: Γ)

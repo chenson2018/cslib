@@ -39,6 +39,8 @@ inductive Sub : Env Var → Ty Var → Ty Var → Prop
       Sub Γ (all σ' τ') (all σ τ)
   | sum : Sub Γ σ' σ → Sub Γ τ' τ → Sub Γ (sum σ' τ') (sum σ τ)
 
+attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
+
 lemma Sub.lc (Γ : Env Var) (σ τ : Ty Var) (sub : Sub Γ σ τ) : Γ.Wf ∧ σ.Wf Γ ∧ τ.Wf Γ := 
   sorry
 
