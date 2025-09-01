@@ -324,6 +324,7 @@ lemma open_tm_subst_tm (t₁ t₂ : Term Var) (lc : s.LC) (x : Var) :
     (t₁ ^ᵗᵗ t₂)[x := s] = (t₁[x := s]) ^ᵗᵗ t₂[x := s] := openRec_tm_subst_tm 0 t₁ t₂ lc x
 
 /-- Specialize `Term.openRec_tm_subst_tm` to free term variables. -/ 
+@[scoped grind _=_]
 lemma open_tm_subst_tm_var (t : Term Var) (neq : y ≠ x) (lc : s.LC) :
      (t ^ᵗᵗ fvar y)[x := s] = (t[x := s]) ^ᵗᵗ fvar y := by grind [open_tm_subst_tm]
 
@@ -337,6 +338,7 @@ lemma open_tm_subst_ty (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
     (t₁ ^ᵗᵗ t₂)[X := δ] = (t₁[X := δ]) ^ᵗᵗ t₂[X := δ] := openRec_tm_subst_ty 0 t₁ t₂ δ X
 
 /-- Specialize `Term.open_tm_subst_ty` to free term variables -/
+@[scoped grind _=_]
 lemma open_tm_subst_ty_var (t₁ : Term Var) (δ : Ty Var) (X y : Var) :
     (t₁ ^ᵗᵗ fvar y)[X := δ] = (t₁[X := δ]) ^ᵗᵗ fvar y := by grind [open_tm_subst_ty]
 
@@ -352,6 +354,7 @@ lemma open_ty_subst_tm (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
     (t ^ᵗᵞ δ)[x := s] = t[x := s] ^ᵗᵞ δ := openRec_ty_subst_tm 0 t δ lc x
 
 /-- Specialize `Term.open_ty_subst_tm` to free type variables. -/
+@[scoped grind _=_]
 lemma open_ty_subst_tm_var (t : Term Var) (lc : s.LC) (x Y : Var) :
     (t ^ᵗᵞ .fvar Y)[x := s] = t[x := s] ^ᵗᵞ .fvar Y := open_ty_subst_tm _ _ lc _
 
@@ -370,12 +373,20 @@ variable [HasFresh Var]
 
 lemma subst_ty_lc (t_lc : t.LC) (δ_lc : δ.LC) (X : Var) : t[X := δ].LC := by
   induction t_lc
-  case abs | tabs | let' | case => sorry
+  -- TODO: find a way to incorporate this into a tactic...
+  case abs  => apply LC.abs (free_union Var) <;> grind
+  case tabs => apply LC.tabs (free_union Var) <;> grind
+  case let' => apply LC.let' (free_union Var) <;> grind
+  case case => apply LC.case (free_union Var) <;> grind
   all_goals grind
 
 lemma subst_tm_lc (t_lc : t.LC) (s_lc : s.LC) (x : Var) : t[x := s].LC := by
   induction t_lc
-  case abs | tabs | let' | case => sorry
+  -- TODO: find a way to incorporate this into a tactic...
+  case abs  => apply LC.abs (free_union Var) <;> grind
+  case let' => apply LC.let' (free_union Var) <;> grind
+  case case => apply LC.case (free_union Var) <;> grind
+  case tabs => apply LC.tabs (free_union Var) <;> grind
   all_goals grind
 
 end Term
