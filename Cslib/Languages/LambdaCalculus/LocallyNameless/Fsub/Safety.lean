@@ -41,8 +41,19 @@ lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
 lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ ++ Δ ++ Θ) σ σ' := by
   generalize eq : Γ ++ Θ = ΓΘ at sub
   induction sub generalizing Γ 
-  case trans_tvar => sorry
-  case all => sorry
+  case trans_tvar σ _ _ X mem _ _=> 
+    subst eq
+    have : X ∉ Δ.dom := sorry
+    have mem' : Binding.sub σ ∈ List.dlookup X (Γ ++ Δ ++ Θ) := sorry
+    grind
+  case all σ _ _ _ _ _ _ _ ih => 
+    subst eq
+    apply all (free_union [Context.dom] Var)
+    · grind
+    · intro X mem
+      have wf : Env.Wf ((⟨X, Binding.sub σ⟩ :: Γ) ++ Δ ++ Θ) := sorry
+      specialize ih X (by grind) wf (by grind)
+      grind
   all_goals grind  
 
 end Ty.Sub
