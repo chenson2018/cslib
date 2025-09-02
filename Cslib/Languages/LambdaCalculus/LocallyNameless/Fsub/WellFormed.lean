@@ -102,8 +102,8 @@ lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
   case all => sorry
   all_goals grind
 
-lemma strengthen (wf : σ.Wf (Γ ++ [⟨x, Binding.ty U⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
-  generalize eq : Γ ++ [⟨x, Binding.ty U⟩] ++ Δ = Θ at wf
+lemma strengthen (wf : σ.Wf (Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
+  generalize eq : Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ = Θ at wf
   induction wf generalizing Γ
   case var => sorry
   case all => sorry
