@@ -109,42 +109,29 @@ lemma strengthen (wf : σ.Wf (Γ ++ [⟨x, Binding.ty U⟩] ++ Δ)) : σ.Wf (Γ 
   case all => sorry
   all_goals grind
 
-lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Γ) : 
-    (σ[X:=τ']).Wf <| (Γ ++ Δ).map_val (·[X:=τ']) := by
+lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ)
+    (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
   generalize eq : Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ = Θ at wf_σ
   induction wf_σ generalizing Γ τ'
-  case var => sorry
+  case var σ _ X' mem => 
+    subst eq
+    by_cases eq : X' = X
+    · subst eq
+      rw [←subst_def]
+      simp only [subst, reduceIte]
+      sorry
+    · rw [←subst_def]
+      simp only [subst, eq, reduceIte]
+      apply var (σ := σ[X:=τ'])
+      sorry          
   case all => sorry
   all_goals grind
 
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by
-  cases wf_all with | all L σ_wf cofin => 
+  cases wf_all with | all => 
     let ⟨X,mem⟩ := fresh_exists <| free_union [fv, Context.dom] Var
-    rw [open_subst_intro (X := X) _ (by grind)]
-    -- TODO: X can be selected to make this true, but I need to work with the union of free
-    -- variables of all context values.
-    have : Γ = Γ.map_val (·[X:=δ]) := by
-      sorry
-    have eq : Γ = Context.map_val (·[X:=δ]) (Γ ++ []) := by grind
-    rw [eq]
-    apply map_subst (τ := σ)
-    · simp at *
-      -- TODO: make this shorter... there are still problems with Context.dom and grind
-      have ok_cons : (⟨X, Binding.sub σ⟩ :: Γ)✓ := by
-        constructor
-        simp
-        intro _ _ mem' eq
-        subst eq
-        have p := Context.dom_mem mem'
-        have np := mem.left
-        simp [Context.dom] at p
-        contradiction
-        exact ok_Γ
-      have perm : List.Perm (⟨X, Binding.sub σ⟩ :: Γ) (Γ ++ [⟨X, Binding.sub σ⟩]) := by
-        exact Perm.symm (perm_append_singleton ⟨X, Binding.sub σ⟩ Γ)
-      specialize cofin X (by grind)
-      apply perm_env ?_ perm <;> grind
-    · assumption
+    have : Γ = Context.map_val (·[X:=δ]) [] ++ Γ := by grind
+    grind [open_subst_intro, map_subst]
 
 omit [HasFresh Var] in
 @[grind]
@@ -187,7 +174,7 @@ lemma strengthen (wf : Env.Wf <| Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ) : Env.Wf 
     sorry
 
 lemma map_subst (wf_env : Env.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ) :
-    Env.Wf <| (Γ ++ Δ).map_val (·[X:=τ']) := sorry
+    Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := sorry
 
 end Env.Wf
 

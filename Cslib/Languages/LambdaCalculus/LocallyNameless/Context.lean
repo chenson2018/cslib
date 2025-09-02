@@ -77,6 +77,16 @@ theorem map_val_ok (ok : Γ✓) (f : Ty → Ty) : (Γ.map_val f)✓ := by
     cases ok
     constructor <;> grind
 
+lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
+  induction Γ
+  case nil => simp at mem
+  case cons hd tl ih =>
+    let ⟨x',σ'⟩ := hd
+    by_cases h : x = x'
+    · subst h
+      simp_all [map_val]
+    · grind [List.dlookup_cons_ne]
+
 end LambdaCalculus.LocallyNameless.Context
 
 namespace List
@@ -104,5 +114,11 @@ theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (
       rw [List.dlookup_cons_eq] at *
       exact mem
     · simp_all
+
+theorem dlookup_append_mem (l₁ l₂ : List (Sigma β)) (mem : b ∈ (l₁ ++ l₂).dlookup a) : 
+    b ∈ l₁.dlookup a ∨ b ∈ l₂.dlookup a := by
+  rw [List.dlookup_append l₁ l₂ a] at mem
+  simp at mem
+  grind
 
 end List
