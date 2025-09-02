@@ -73,15 +73,15 @@ theorem lc (wf : σ.Wf Γ) : σ.LC := by
   all_goals grind
 
 omit [HasFresh Var] in
-theorem weaken (wf_ΓΔ : σ.Wf (Γ ++ Δ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
-  generalize eq : Γ ++ Δ = ΓΔ at wf_ΓΔ
-  induction wf_ΓΔ generalizing Γ 
-  case all σ _ _ _ _ _ ih =>
+@[grind =>]
+theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : σ.Wf (Γ ++ Δ ++ Θ) := by
+  generalize eq : Γ ++ Θ = ΓΔ at wf_ΓΘ
+  induction wf_ΓΘ generalizing Γ
+  case all σ _ _ _ _ _ ih => 
     apply all (free_union [Context.dom] Var) (by grind)
     intro X _
-    -- TODO eliminate the simp
-    apply ih (Γ := ⟨X, Binding.sub σ⟩ :: Γ) 
-    <;> simp [Context.haswellformed_def, keys] at * 
+    apply ih (Γ := ⟨X, Binding.sub σ⟩ :: Γ)
+    <;> simp [Context.haswellformed_def, keys] at *
     <;> grind
   case var => 
     observe : (Γ ++ Δ).Sublist (Γ ++ Δ ++ Θ)
@@ -89,7 +89,7 @@ theorem weaken (wf_ΓΔ : σ.Wf (Γ ++ Δ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : 
   all_goals grind
 
 omit [HasFresh Var] in
-theorem weaken_head (wf : σ.Wf Γ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
+theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]  
 

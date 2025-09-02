@@ -26,15 +26,24 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-variable {Γ : Env Var} {σ : Ty Var}
+variable {Γ Δ Θ : Env Var} {σ : Ty Var}
 
 namespace Ty.Sub
+
+open scoped Ty.Wf Env.Wf
 
 omit [HasFresh Var] in
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   induction wf_σ with
   | all => apply all (free_union [Context.dom] Var) <;> grind
   | _ => grind
+
+lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ ++ Δ ++ Θ) σ σ' := by
+  generalize eq : Γ ++ Θ = ΓΘ at sub
+  induction sub generalizing Γ 
+  case trans_tvar => sorry
+  case all => sorry
+  all_goals grind  
 
 end Ty.Sub
 
