@@ -29,7 +29,7 @@ variable {β : α → Type v} {Γ Δ : List (Sigma β)}
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
 
-/-- Sublists without deuplicate keys preserve lookups. -/
+/-- Sublists without duplicate keys preserve lookups. -/
 @[grind]
 theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
     (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
