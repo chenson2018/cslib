@@ -17,7 +17,7 @@ Contexts as pairs of free variables and types.
 
 universe u v
 
-variable {α : Type u} {β : Type v} [DecidableEq α]
+variable {α : Type u} [DecidableEq α]
 
 -- TODO: These are pieces of API that cannot be directly automated by adding `grind` attributes to
 -- `Mathlib.Data.List.Sigma`. We should consider upstreaming them to Mathlib.
@@ -37,9 +37,8 @@ theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (
   case slnil => exact mem
   case cons p' _ ih =>
     obtain ⟨a', b'⟩ := p'
-    have : a ≠ a' := by
-      have := ih nd₁ ?_ mem |> of_mem_dlookup |> mem_keys_of_mem
-      all_goals grind [nodupKeys_cons]
+    have := ih nd₁ (by grind [nodupKeys_cons]) mem |> of_mem_dlookup |> mem_keys_of_mem
+    have : a ≠ a' := by grind [nodupKeys_cons]
     simp_all
   case cons₂ p' _ ih =>
     obtain ⟨a', b'⟩ := p'
@@ -59,6 +58,8 @@ theorem dlookup_append_mem (l₁ l₂ : List (Sigma β)) (mem : b ∈ (l₁ ++ l
 end List
 
 namespace LambdaCalculus.LocallyNameless
+
+variable {β : Type v}
 
 /-- A typing context is a list of free variables and corresponding types. -/
 abbrev Context (α : Type u) (β : Type v) := List ((_ : α) × β)
