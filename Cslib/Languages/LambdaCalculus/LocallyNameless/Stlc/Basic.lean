@@ -102,25 +102,16 @@ lemma subst_aux (h : Δ ++ ⟨x, σ⟩ :: Γ ⊢ t ∶ τ) (der : Γ ⊢ s ∶ �
   case var x' τ ok mem => 
     simp only [subst_fvar]
     subst eq
-    cases (Context.wf_perm (by simp) ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
+    cases ((List.perm_nodupKeys (by simp)).mp ok : (⟨x, σ⟩ :: Δ ++ Γ)✓)
     case cons ok_weak _ =>
     observe perm : (Γ ++ Δ).Perm (Δ ++ Γ)
     by_cases h : x = x' <;> simp only [h]
     case neg => grind
     case pos nmem =>
-      subst h
-      have nmem_Γ : ∀ γ, ⟨x, γ⟩ ∉ Γ := by
-        intros γ _
-        exact nmem x (List.mem_keys.mpr ⟨γ, by simp_all⟩) rfl
-      have nmem_Δ : ∀ γ, ⟨x, γ⟩ ∉ Δ := by
-        intros γ _
-        exact nmem x (List.mem_keys.mpr ⟨γ, by simp_all⟩) rfl
-      have eq' : τ = σ := by
-        simp only [List.mem_append, List.mem_cons, Sigma.mk.injEq, heq_eq_eq] at mem
-        match mem with | _ => simp_all
+      have eq' : τ = σ := by grind
       rw [eq']
       refine (weaken der ?_).perm perm
-      exact Context.wf_perm (id (List.Perm.symm perm)) ok_weak
+      grind
   case abs σ Γ' t T2 xs ih' ih =>
     apply Typing.abs (free_union Var)
     intros

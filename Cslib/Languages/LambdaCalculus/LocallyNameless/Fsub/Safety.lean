@@ -30,7 +30,7 @@ variable {Γ Δ Θ : Env Var} {σ : Ty Var}
 
 namespace Ty.Sub
 
-open scoped Ty.Wf Env.Wf
+open Ty.Wf Env.Wf Context List
 
 omit [HasFresh Var] in
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
@@ -43,6 +43,8 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   induction sub generalizing Γ 
   case trans_tvar σ _ _ X mem _ _=> 
     subst eq
+    have : X ∈ (Γ ++ Θ).dom := by grind
+    have ok : (Γ ++ Δ ++ Θ)✓ := by grind
     have : X ∉ Δ.dom := sorry
     have mem' : Binding.sub σ ∈ List.dlookup X (Γ ++ Δ ++ Θ) := sorry
     grind
