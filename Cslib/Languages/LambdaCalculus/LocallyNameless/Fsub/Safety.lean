@@ -42,12 +42,9 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
   generalize eq : Γ ++ Θ = ΓΘ at sub
   induction sub generalizing Γ 
   case trans_tvar σ _ _ X mem _ _=> 
-    subst eq
-    have : X ∈ (Γ ++ Θ).dom := by grind
-    have ok : (Γ ++ Δ ++ Θ)✓ := by grind
-    have : X ∉ Δ.dom := sorry
-    have mem' : Binding.sub σ ∈ List.dlookup X (Γ ++ Δ ++ Θ) := sorry
-    grind
+    have : (Γ ++ Δ ++ Θ).Perm (Δ ++ Γ ++ Θ) := by grind [perm_append_comm_assoc]
+    have : X ∉ Δ.keys := by grind [mem_keys_append_NodupKeys]
+    grind [dlookup_append, dlookup_eq_none]
   case all σ _ _ _ _ _ _ _ ih => 
     subst eq
     apply all (free_union [Context.dom] Var)
