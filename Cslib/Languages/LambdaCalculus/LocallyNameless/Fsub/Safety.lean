@@ -26,13 +26,14 @@ variable {Var : Type u} [HasFresh Var] [DecidableEq Var]
 
 namespace LambdaCalculus.LocallyNameless.Fsub
 
-variable {Γ Δ Θ : Env Var} {σ : Ty Var}
+variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
 namespace Ty.Sub
 
 open Ty.Wf Env.Wf Context List
 
 omit [HasFresh Var] in
+@[grind <=]
 lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   induction wf_σ with
   | all => apply all (free_union [Context.dom] Var) <;> grind
@@ -54,6 +55,26 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
       specialize ih X (by grind) wf (by grind)
       grind
   all_goals grind  
+
+@[simp, grind]
+def TransOn (δ : Ty Var) := ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ 
+
+-- TODO: make the params of this match up with `narrow`, or maybe even inline it?
+lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ)
+    (sub₂ : Sub Δ δ' δ) : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ := sorry
+
+lemma trans (Γ : Env Var) : Transitive (Sub Γ) := sorry
+
+lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) :
+    Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ := by
+  apply narrow_aux (δ := δ')
+  · intros Γ _ _ s1 s2
+    exact trans Γ s1 s2 -- TODO: grind this..., Transitive → TransOn
+  · exact sub_narrow
+  · exact sub_δ
+
+lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (sub₂ : Sub Δ δ δ') :
+    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := sorry
 
 end Ty.Sub
 

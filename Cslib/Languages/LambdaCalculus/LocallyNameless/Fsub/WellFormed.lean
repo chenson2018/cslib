@@ -66,6 +66,7 @@ theorem perm_env (wf : σ.Wf Γ) (perm : Γ ~ Δ) (ok_Γ : Γ✓) (ok_Δ : Δ✓
   all_goals grind [perm_dlookup]
 
 omit [HasFresh Var] in
+@[grind →]
 theorem lc (wf : σ.Wf Γ) : σ.LC := by
   induction wf
   -- TODO: how to get grind to do this???
