@@ -109,6 +109,7 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
 -/
 
 /-- List permutation preserves keys. -/
+@[grind =>]
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
 
@@ -142,6 +143,17 @@ theorem dlookup_append_mem (l₁ l₂ : List (Sigma β)) (mem : b ∈ (l₁ ++ l
   simp at mem
   grind
 
+theorem nmem_append_keys (l₁ l₂ : List (Sigma β)) :
+    a ∉ (l₁ ++ l₂).keys ↔ a ∉ l₁.keys ∧ a ∉ l₂.keys := by
+  constructor <;> (
+    intro h
+    induction l₂
+    case nil => simp_all
+    case cons hd tl ih =>
+      have perm : (l₁ ++ hd :: tl).Perm (hd :: (l₁ ++ tl)) := by simp
+      grind [keys_cons]
+  )
+
 end List
 
 namespace LambdaCalculus.LocallyNameless
@@ -168,6 +180,7 @@ attribute [scoped grind →] List.mem_keys_of_mem
 attribute [scoped grind] List.dlookup_isSome
 attribute [scoped grind →] List.perm_nodupKeys
 attribute [scoped grind →] List.Perm.symm
+attribute [scoped grind _=_] List.dlookup_append
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp, scoped grind =]
