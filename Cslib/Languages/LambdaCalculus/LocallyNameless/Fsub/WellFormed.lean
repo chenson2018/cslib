@@ -106,8 +106,17 @@ lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
 lemma strengthen (wf : σ.Wf (Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
   generalize eq : Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ = Θ at wf
   induction wf generalizing Γ
-  case var => sorry
-  case all => sorry
+  case var σ _ Y mem => 
+    subst eq
+    -- TODO: better grinding here...
+    rw [dlookup_append, dlookup_append] at mem
+    simp at mem
+    have : (¬ Y = X) → dlookup Y ([⟨X, Binding.ty τ⟩] : Env Var) = none := by
+      simp_all [List.dlookup_eq_none.mpr]
+    match mem with
+    | Or.inl (Or.inl _) | Or.inr _ => grind
+    | Or.inl (Or.inr _) => by_cases Y = X <;> grind [dlookup_cons_eq]
+  case all => apply all (free_union [Context.dom] Var) <;> grind
   all_goals grind
 
 lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ)
