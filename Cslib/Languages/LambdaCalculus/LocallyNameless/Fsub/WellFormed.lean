@@ -94,15 +94,45 @@ theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := b
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]  
 
+omit [HasFresh Var] in
 lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
   (ok : (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ)✓) : 
     σ.Wf (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ) := by
   generalize eq : (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ) = Θ at wf
   induction wf generalizing Γ
-  case var => sorry
-  case all => sorry
+  case var σ _ Y mem => 
+    subst eq
+    -- TODO: better grinding here...
+    rw [dlookup_append, dlookup_append] at mem
+    simp at mem
+    match mem with
+    | Or.inl (Or.inl mem) => grind
+    | Or.inl (Or.inr ⟨Γ_nmem,mem⟩) => 
+        by_cases eq : Y = X
+        · subst eq
+          apply var (σ := τ')
+          simp_all [dlookup_append]
+        · rw [dlookup_cons_ne] at mem
+          · simp at mem
+          · grind
+    | Or.inr ⟨⟨nmem₁, nmem₂⟩, mem⟩ =>
+        have ne : Y ≠ X := by grind [dlookup_cons_eq]
+        grind [dlookup_cons_ne]
+  case all δ γ _ _ _ _ ih => 
+    subst eq
+    apply all (free_union [Context.dom] Var)
+    · grind
+    · intro X' mem
+      have := @ih X' (by grind) (⟨X', Binding.sub δ⟩ :: Γ) ?ok (by grind)
+      · grind
+      · refine List.nodupKeys_cons.mpr ⟨?_, by grind⟩
+        simp only [append_eq]
+        rw [nmem_append_keys, nmem_append_keys]
+        -- TODO: grind here
+        aesop
   all_goals grind
 
+omit [HasFresh Var] in
 lemma strengthen (wf : σ.Wf (Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
   generalize eq : Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ = Θ at wf
   induction wf generalizing Γ
