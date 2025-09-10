@@ -213,8 +213,10 @@ lemma openRec_tm_ty_eq (eq : t⟦x ↝ s⟧ᵗᵗ = t⟦x ↝ s⟧ᵗᵗ⟦y ↝
 /-- A locally closed term is unchanged by type opening. -/
 @[scoped grind]
 lemma openRec_ty_lc {t : Term Var} (lc : t.LC) : t = t⟦X ↝ σ⟧ᵗᵞ := by
-  induction t generalizing X
-  case abs | tabs | let' | case => sorry
+  induction lc generalizing X
+  case let' | case | tabs | abs =>
+    have := fresh_exists <| free_union Var
+    congr <;> grind
   all_goals grind
 
 /-- Substitution of a type within a term. -/
@@ -301,15 +303,20 @@ omit [DecidableEq Var] in
 lemma openRec_ty_tm_eq (eq : t⟦Y ↝ σ⟧ᵗᵞ = t⟦Y ↝ σ⟧ᵗᵞ⟦x ↝ s⟧ᵗᵗ) : t = t⟦x ↝ s⟧ᵗᵗ := by
   induction t generalizing x Y <;> grind
 
+variable [HasFresh Var]
+
 /-- A locally closed term is unchanged by term opening. -/
 @[scoped grind]
 lemma openRec_tm_lc (lc : t.LC) : t = t⟦x ↝ s⟧ᵗᵗ := by
-  induction t generalizing x
-  case abs  | tabs | let' | case => sorry
+  induction lc generalizing x
+  case let' | case | tabs | abs =>
+    have := fresh_exists <| free_union Var
+    congr <;> grind
   all_goals grind
 
 variable {t s : Term Var} {δ : Ty Var} {x : Var}
 
+omit [HasFresh Var] in
 /-- Substitution of a free term variable not present in a term leaves it unchanged. -/
 lemma subst_tm_fresh (nmem : x ∉ t.fv_tm) (s : Term Var) : t = t[x := s] := by
   induction t <;> grind
@@ -341,8 +348,6 @@ lemma open_tm_subst_ty (t₁ t₂ : Term Var) (δ : Ty Var) (X : Var) :
 @[scoped grind _=_]
 lemma open_tm_subst_ty_var (t₁ : Term Var) (δ : Ty Var) (X y : Var) :
     (t₁ ^ᵗᵗ fvar y)[X := δ] = (t₁[X := δ]) ^ᵗᵗ fvar y := by grind [open_tm_subst_ty]
-
-variable [HasFresh Var]
 
 /-- Substitution of a locally closed term distributes with term opening to a type. -/
 lemma openRec_ty_subst_tm (Y : ℕ) (t : Term Var) (δ : Ty Var) (lc : s.LC) (x : Var) :
