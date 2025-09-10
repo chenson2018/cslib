@@ -124,6 +124,7 @@ lemma strengthen (wf : σ.Wf (Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ)) : σ.Wf (Γ
   case all => apply all (free_union [Context.dom] Var) <;> grind
   all_goals grind
 
+open Context in
 lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ)
     (ok : (Γ.map_val (·[X:=τ']) ++ Δ)✓) : σ[X:=τ'].Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
   generalize eq : Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ = Θ at wf_σ
@@ -147,7 +148,26 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' 
       | Or.inr _ =>
           apply var (σ := σ)
           grind [Context.map_val_nmem]
-  case all => sorry
+  case all γ _ _ _ _ _ ih => 
+    subst eq
+    apply all (free_union [Context.dom] Var)
+    · grind
+    · simp only [subst_def] at *
+      intro X' mem
+      have e : 
+        map_val (fun x => x[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) = 
+        ⟨X', (Binding.sub γ)[X:=τ']⟩ :: map_val (fun x => x[X:=τ']) Γ := by simp
+      have ok' : (map_val (fun x => x[X:=τ']) (⟨X', Binding.sub γ⟩ :: Γ) ++ Δ)✓ := by
+        rw [e]
+        simp only [haswellformed_def, cons_append, nodupKeys_cons]
+        split_ands
+        · rw [keys_append, ←map_val_keys]
+          simp_all
+        · aesop
+      rw [←open_subst_var]
+      apply ih X' ?_ wf_τ' ok' <;> grind
+      · simp_all
+      · grind
   all_goals grind
 
 lemma open_lc (ok_Γ : Γ✓) (wf_all : (Ty.all σ τ).Wf Γ) (wf_δ : δ.Wf Γ) : (τ ^ᵞ δ).Wf Γ := by

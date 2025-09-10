@@ -135,7 +135,7 @@ lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
 
 omit [DecidableEq α] in
 /-- A mapping of values preserves non-duplication of keys. -/
-theorem map_val_ok (ok : Γ✓) (f : β → β) : (Γ.map_val f)✓ := by
+theorem map_val_ok (f : β → β) : Γ✓ ↔ (Γ.map_val f)✓ := by
   grind
 
 /-- A mapping of values maps lookups. -/
