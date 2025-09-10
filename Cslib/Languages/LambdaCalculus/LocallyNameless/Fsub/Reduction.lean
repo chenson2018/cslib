@@ -49,21 +49,21 @@ variable [DecidableEq Var]
 
 @[scoped grind <=]
 lemma lc_let_from_body (lc : t₁.LC) (body : t₂.body) : (let' t₁ t₂).LC := by
-  obtain ⟨_, _⟩ := body
+  cases body
   apply LC.let' (free_union Var) <;> grind
 
 @[scoped grind <=]
 lemma lc_case_from_body (lc : t₁.LC) (body₂ : t₂.body) (body₃ : t₃.body) : (case t₁ t₂ t₃).LC := by
-  obtain ⟨_, _⟩ := body₂
-  obtain ⟨_, _⟩ := body₃
+  cases body₂
+  cases body₃
   apply LC.case (free_union Var) <;> grind
 
 variable [HasFresh Var]
 
 @[grind <=]
 lemma open_tm_body (body : t₁.body) (lc : t₂.LC) : (t₁ ^ᵗᵗ t₂).LC := by
-  obtain ⟨_, _⟩ := body
-  let ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
+  cases body
+  have := fresh_exists <| free_union [fv_tm] Var
   grind [open_tm_subst_tm_intro]
 
 end
@@ -99,19 +99,12 @@ inductive Red : Term Var → Term Var → Prop
 variable [HasFresh Var] [DecidableEq Var] in
 lemma Red.lc {t t' : Term Var} (red : Red t t') : t.LC ∧ t'.LC := by
   induction red
-  case abs lc _ => 
-    -- TODO: this is a bit annoying because doing cases too early makes grind fail 
+  case abs lc _ | tabs lc _ => 
     split_ands
     · grind
     · cases lc
-      let ⟨_, _⟩ := fresh_exists <| free_union [fv_tm] Var
-      grind [open_tm_subst_tm_intro]
-  case tabs lc _ => 
-    split_ands
-    · grind
-    · cases lc
-      let ⟨_, _⟩ := fresh_exists <| free_union [fv_ty] Var
-      grind [open_ty_subst_ty_intro]
+      have := fresh_exists <| free_union [fv_tm, fv_ty] Var
+      grind [open_tm_subst_tm_intro, open_ty_subst_ty_intro]
   all_goals grind
 end Term
 
