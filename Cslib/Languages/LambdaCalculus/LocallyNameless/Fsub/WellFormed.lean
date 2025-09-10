@@ -132,25 +132,21 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' 
     subst eq
     by_cases eq : X' = X
     · subst eq
-      rw [←subst_def]
-      simp only [subst, reduceIte]
-      sorry
-    · rw [←subst_def]
-      simp only [subst, eq, reduceIte]
-      apply var (σ := σ[X:=τ'])
-      rw [dlookup_append, dlookup_append] at mem
-      simp at mem
+      grind
+    · simp only [←subst_def, subst, eq, reduceIte]
+      simp only [dlookup_append, Option.mem_def, Option.or_eq_some_iff] at *
+      simp only [←Option.mem_def] at *
       match mem with
-      | Or.inl (Or.inl mem) => 
-          rw [dlookup_append]
-          simp only [Option.mem_def, Option.or_eq_some_iff] 
+      | Or.inl (Or.inl _) | Or.inl (Or.inr _) => 
+          apply var (σ := σ[X:=τ'])
+          simp only [←Binding.subst_sub, dlookup_append, Option.mem_def, Option.or_eq_some_iff]
           left
-          rw [←Option.mem_def]
-          rw [←Binding.subst_sub]
-          apply Context.map_val_mem
-          grind
-      | Or.inl (Or.inr ⟨nmem, mem⟩) => sorry
-      | Or.inr ⟨⟨_, _⟩, mem⟩ => sorry
+          -- TODO: grind only goes in one direction here...
+          simp [←Option.mem_def]
+          grind [Context.map_val_mem]
+      | Or.inr _ =>
+          apply var (σ := σ)
+          grind [Context.map_val_nmem]
   case all => sorry
   all_goals grind
 
