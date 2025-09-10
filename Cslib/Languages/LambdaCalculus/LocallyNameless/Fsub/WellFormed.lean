@@ -106,46 +106,20 @@ lemma narrow (wf : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ))
     rw [dlookup_append, dlookup_append] at mem
     simp at mem
     match mem with
-    | Or.inl (Or.inl mem) => grind
-    | Or.inl (Or.inr ⟨Γ_nmem,mem⟩) => 
-        by_cases eq : Y = X
-        · subst eq
-          apply var (σ := τ')
-          simp_all [dlookup_append]
-        · rw [dlookup_cons_ne] at mem
-          · simp at mem
-          · grind
-    | Or.inr ⟨⟨nmem₁, nmem₂⟩, mem⟩ =>
-        have ne : Y ≠ X := by grind [dlookup_cons_eq]
-        grind [dlookup_cons_ne]
+    | Or.inl (Or.inl _) | Or.inl (Or.inr _) | Or.inr _ => grind
   case all δ γ _ _ _ _ ih => 
-    subst eq
     apply all (free_union [Context.dom] Var)
     · grind
-    · intro X' mem
+    · intro X' _
       have := @ih X' (by grind) (⟨X', Binding.sub δ⟩ :: Γ) ?ok (by grind)
       · grind
-      · refine List.nodupKeys_cons.mpr ⟨?_, by grind⟩
-        simp only [append_eq]
-        rw [nmem_append_keys, nmem_append_keys]
-        -- TODO: grind here
-        aesop
+      · exact nodupKeys_cons.mpr ⟨by simp_all [nmem_append_keys], by grind⟩
   all_goals grind
 
 omit [HasFresh Var] in
 lemma strengthen (wf : σ.Wf (Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ)) : σ.Wf (Γ ++ Δ) := by
   generalize eq : Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ = Θ at wf
   induction wf generalizing Γ
-  case var σ _ Y mem => 
-    subst eq
-    -- TODO: better grinding here...
-    rw [dlookup_append, dlookup_append] at mem
-    simp at mem
-    have : (¬ Y = X) → dlookup Y ([⟨X, Binding.ty τ⟩] : Env Var) = none := by
-      simp_all [List.dlookup_eq_none.mpr]
-    match mem with
-    | Or.inl (Or.inl _) | Or.inr _ => grind
-    | Or.inl (Or.inr _) => by_cases Y = X <;> grind [dlookup_cons_eq]
   case all => apply all (free_union [Context.dom] Var) <;> grind
   all_goals grind
 
@@ -163,7 +137,19 @@ lemma map_subst (wf_σ : σ.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' 
     · rw [←subst_def]
       simp only [subst, eq, reduceIte]
       apply var (σ := σ[X:=τ'])
-      sorry          
+      rw [dlookup_append, dlookup_append] at mem
+      simp at mem
+      match mem with
+      | Or.inl (Or.inl mem) => 
+          rw [dlookup_append]
+          simp only [Option.mem_def, Option.or_eq_some_iff] 
+          left
+          rw [←Option.mem_def]
+          rw [←Binding.subst_sub]
+          apply Context.map_val_mem
+          grind
+      | Or.inl (Or.inr ⟨nmem, mem⟩) => sorry
+      | Or.inr ⟨⟨_, _⟩, mem⟩ => sorry
   case all => sorry
   all_goals grind
 

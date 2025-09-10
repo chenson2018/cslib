@@ -171,6 +171,10 @@ attribute [scoped grind _=_] List.append_eq
 attribute [scoped grind] List.Nodup
 attribute [scoped grind] List.NodupKeys
 
+-- a few grinds on Option:
+attribute [scoped grind =] Option.or_eq_some_iff
+attribute [scoped grind =] Option.or_eq_none_iff
+
 -- we would like grind to treat list and finset membership the same
 attribute [scoped grind] List.mem_toFinset
 
@@ -181,6 +185,9 @@ attribute [scoped grind] List.dlookup_isSome
 attribute [scoped grind →] List.perm_nodupKeys
 attribute [scoped grind →] List.Perm.symm
 attribute [scoped grind _=_] List.dlookup_append
+attribute [scoped grind =] List.dlookup_cons_eq
+attribute [scoped grind =] List.dlookup_cons_ne
+attribute [scoped grind =] List.dlookup_nil
 
 /-- The domain of a context is the finite set of free variables it uses. -/
 @[simp, scoped grind =]
@@ -201,23 +208,23 @@ variable {Γ Δ : Context α β}
 def map_val (f : β → β) (Γ : Context α β) : Context α β := 
   Γ.map (fun ⟨var,ty⟩ => ⟨var,f ty⟩)
 
+omit [DecidableEq α] in
+/-- A mapping of values preserves keys. -/
+@[scoped grind]
+lemma map_val_keys (f) : Γ.keys = (Γ.map_val f).keys := by
+  induction Γ  <;> simp_all
+
+omit [DecidableEq α] in
 /-- A mapping of values preserves non-duplication of keys. -/
 theorem map_val_ok (ok : Γ✓) (f : β → β) : (Γ.map_val f)✓ := by
-  induction Γ
-  case nil => grind
-  case cons hd tl ih =>
-    cases ok
-    constructor <;> grind
+  grind
 
-/-- A mapping of values preserves lookups. -/
+/-- A mapping of values maps lookups. -/
 lemma map_val_mem (mem : σ ∈ Γ.dlookup x) (f) : f σ ∈ (Γ.map_val f).dlookup x := by
-  induction Γ
-  case nil => simp at mem
-  case cons hd tl ih =>
-    let ⟨x',σ'⟩ := hd
-    by_cases h : x = x'
-    · subst h
-      simp_all [map_val]
-    · grind [List.dlookup_cons_ne]
+  induction Γ <;> grind
+
+/-- A mapping of values preserves non-lookups. -/
+lemma map_val_nmem (nmem : Γ.dlookup x = none) (f) : (Γ.map_val f).dlookup x = none := by
+  grind [List.dlookup_eq_none]
 
 end LambdaCalculus.LocallyNameless.Context
