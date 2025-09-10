@@ -204,37 +204,25 @@ lemma map_subst (wf_env : Env.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ
 
 end Env.Wf
 
+open scoped Context
+
 -- TODO : move these up???
 open scoped Ty in
+@[scoped grind →]
 lemma Ty.nmem_fv_tm_open {σ : Ty Var} {X : Var} (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv := by
   induction σ generalizing X γ
   case all => sorry
   all_goals simp [fv, open'] at * <;> grind
 
--- TODO: messy...
 @[grind →]
 lemma Ty.wf.nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
   induction wf
-  case var σ Γ X' mem => 
-    have : X' ∈ Γ.dom := by simp [List.of_mem_dlookup mem |> List.mem_keys_of_mem]
-    grind
-  case all ih => 
-    simp only [fv]
-    let ⟨Y, mem⟩ := fresh_exists <| free_union [Context.dom] Var
-    simp
-    split_ands
-    · grind
-    · have := ih Y (by grind) ?_
-      · grind [Ty.nmem_fv_tm_open]
-      · simp 
-        split_ands
-        · grind
-        · simp_all -- TODO: what's stopping grind here???
+  case all => have := fresh_exists <| free_union [Context.dom] Var; grind
   all_goals grind
 
 open Context Ty Binding List in
 lemma map_subst_nmem (Γ : Env Var) (X : Var) (σ : Ty Var) (wf : Γ.Wf) (nmem : X ∉ Γ.dom) :
     Γ = Γ.map_val (·[X:=σ]) := by
-  induction wf <;> grind [keys_cons, toFinset_cons, Finset.mem_insert]
+  induction wf <;> grind
 
 end LambdaCalculus.LocallyNameless.Fsub

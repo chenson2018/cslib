@@ -180,6 +180,7 @@ attribute [scoped grind] List.mem_toFinset
 
 -- otherwise, we mostly reuse existing API in `Mathlib.Data.List.Sigma`
 attribute [scoped grind] List.keys
+attribute [scoped grind] List.keys_cons
 attribute [scoped grind →] List.mem_keys_of_mem
 attribute [scoped grind] List.dlookup_isSome
 attribute [scoped grind →] List.perm_nodupKeys
