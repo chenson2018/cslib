@@ -109,7 +109,7 @@ theorem Sublist.erase_diff_erase_sublist {a : α} :
 -/
 
 /-- List permutation preserves keys. -/
-@[grind =>]
+@[scoped grind =>]
 theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
 
@@ -118,7 +118,7 @@ theorem mem_keys_append_NodupKeys (mem : X ∈ Γ.keys) (ok : (Δ ++ Γ).NodupKe
   induction Δ <;> simp_all [keys] ; grind
 
 /-- Sublists without duplicate keys preserve lookups. -/
-@[grind]
+@[scoped grind]
 theorem sublist_dlookup (l₁ l₂ : List (Sigma β)) (nd₁ : l₁.NodupKeys) (nd₂ : l₂.NodupKeys)
     (s : l₁ <+ l₂) (mem : b ∈ l₁.dlookup a) : b ∈ l₂.dlookup a := by
   induction s generalizing a b

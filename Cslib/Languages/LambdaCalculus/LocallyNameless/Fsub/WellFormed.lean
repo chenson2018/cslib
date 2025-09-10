@@ -44,8 +44,8 @@ attribute [scoped grind] Ty.Wf.top Ty.Wf.var Ty.Wf.arrow Ty.Wf.sum
 @[grind]
 inductive Env.Wf : Env Var → Prop
   | empty : Wf []
-  | sub : Wf Γ → T.Wf Γ → X ∉ Γ.dom → Wf (⟨X, Binding.sub T⟩ :: Γ)
-  | ty : Wf Γ → T.Wf Γ → x ∉ Γ.dom → Wf (⟨x, Binding.ty T⟩ :: Γ)
+  | sub : Wf Γ → τ.Wf Γ → X ∉ Γ.dom → Wf (⟨X, Binding.sub τ⟩ :: Γ)
+  | ty : Wf Γ → τ.Wf Γ → x ∉ Γ.dom → Wf (⟨x, Binding.ty τ⟩ :: Γ)
 
 namespace Ty.Wf
 
@@ -90,6 +90,7 @@ theorem weaken (wf_ΓΘ : σ.Wf (Γ ++ Θ)) (ok_ΓΔΘ : (Γ ++ Δ ++ Θ)✓) : 
   all_goals grind
 
 omit [HasFresh Var] in
+@[grind]
 theorem weaken_head (wf : σ.Wf Δ) (ok : (Γ ++ Δ)✓) : σ.Wf (Γ ++ Δ) := by
   have : Γ ++ Δ = [] ++ Γ ++ Δ := by rfl
   grind [weaken]  
@@ -164,8 +165,17 @@ omit [HasFresh Var] in
 lemma to_ok (wf : Γ.Wf) : Γ✓ := by
   induction wf <;> constructor <;> first | assumption | grind
 
-lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := 
-  sorry
+omit [HasFresh Var] in
+lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf Γ := by
+  induction wf
+  case empty => grind
+  -- TODO : grind should pick these up
+  case sub Γ X τ _ _ _ _ =>
+    have : ⟨X, Binding.sub τ⟩ :: Γ = [⟨X, Binding.sub τ⟩] ++ Γ := by rfl
+    grind
+  case ty Γ X τ _ _ _ _ =>
+    have : ⟨X, Binding.ty τ⟩ :: Γ = [⟨X, Binding.ty τ⟩] ++ Γ := by rfl
+    grind
  
 omit [HasFresh Var] in
 lemma from_env_bind_ty (wf : Env.Wf ([⟨X, Binding.ty σ⟩] ++ Γ)) : σ.Wf Γ := by
@@ -181,38 +191,37 @@ end Ty.Wf
 
 namespace Env.Wf
 
+open Context
+
 variable {Γ Δ Θ : Env Var} {τ τ' : Ty Var}
 
+omit [HasFresh Var] in
 lemma narrow (wf_env : Env.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ) : 
     Env.Wf (Γ ++ [⟨X, Binding.sub τ'⟩] ++ Δ) := by
-  induction Γ generalizing τ τ' X
-  · simp_all
-    cases wf_env
-    constructor <;> assumption
-  · sorry
-   
+  induction Γ <;> cases wf_env <;> constructor <;> grind [Ty.Wf.narrow, List.nmem_append_keys]
+
+omit [HasFresh Var] in
 lemma strengthen (wf : Env.Wf <| Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ) : Env.Wf <| Γ ++ Δ := by
-  induction Γ generalizing Δ τ X
-  case nil =>
-    cases wf
-    assumption
-  case cons φ Φ ih =>
-    sorry
+  induction Γ <;> cases wf
+  case nil => assumption
+  case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.strengthen, List.nmem_append_keys]
 
 lemma map_subst (wf_env : Env.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ) :
     Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := sorry
 
 end Env.Wf
 
-open scoped Context
+open scoped Context Ty
 
 -- TODO : move these up???
-open scoped Ty in
+omit [HasFresh Var] in
+lemma Ty.nmem_fv_tm_openRec {σ : Ty Var} {X : Var} (nmem : X ∉ (σ⟦k ↝ γ⟧ᵞ).fv) : X ∉ σ.fv := by
+  induction σ generalizing k <;> grind
+
+omit [HasFresh Var] in
 @[scoped grind →]
-lemma Ty.nmem_fv_tm_open {σ : Ty Var} {X : Var} (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv := by
-  induction σ generalizing X γ
-  case all => sorry
-  all_goals simp [fv, open'] at * <;> grind
+lemma Ty.nmem_fv_tm_open {σ : Ty Var} {X : Var} (nmem : X ∉ (σ ^ᵞ γ).fv) : X ∉ σ.fv := 
+  Ty.nmem_fv_tm_openRec (k := 0) nmem
 
 @[grind →]
 lemma Ty.wf.nmem_fv {σ : Ty Var} (wf : σ.Wf Γ) (nmem : X ∉ Γ.dom) : X ∉ σ.fv := by
