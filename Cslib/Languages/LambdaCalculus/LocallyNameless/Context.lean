@@ -31,8 +31,9 @@ theorem perm_keys (h : Γ.Perm Δ) : x ∈ Γ.keys ↔ x ∈ Δ.keys := by
   induction h <;> grind [keys_cons]
 
 omit [DecidableEq α] in
-theorem mem_keys_append_NodupKeys (mem : X ∈ Γ.keys) (ok : (Δ ++ Γ).NodupKeys) : X ∉ Δ.keys := by
-  induction Δ <;> simp_all [keys] ; grind
+/-- List keys distribute with appending. -/
+theorem keys_append : (Δ ++ Γ).keys = Δ.keys ++ Γ.keys := by
+  induction Δ <;> simp_all
 
 /-- Sublists without duplicate keys preserve lookups. -/
 @[scoped grind]
@@ -83,23 +84,23 @@ abbrev Context (α : Type u) (β : Type v) := List ((_ : α) × β)
 namespace Context
 
 -- we would like grind to see through certain notations
-attribute [scoped grind] Option.mem_def
+attribute [scoped grind =] Option.mem_def
 attribute [scoped grind _=_] List.append_eq
-attribute [scoped grind] List.Nodup
-attribute [scoped grind] List.NodupKeys
+attribute [scoped grind =] List.Nodup
+attribute [scoped grind =] List.NodupKeys
 
 -- a few grinds on Option:
 attribute [scoped grind =] Option.or_eq_some_iff
 attribute [scoped grind =] Option.or_eq_none_iff
 
 -- we would like grind to treat list and finset membership the same
-attribute [scoped grind] List.mem_toFinset
+attribute [scoped grind _=_] List.mem_toFinset
 
 -- otherwise, we mostly reuse existing API in `Mathlib.Data.List.Sigma`
-attribute [scoped grind] List.keys
-attribute [scoped grind] List.keys_cons
+attribute [scoped grind =] List.keys
+attribute [scoped grind =] List.keys_cons
 attribute [scoped grind →] List.mem_keys_of_mem
-attribute [scoped grind] List.dlookup_isSome
+attribute [scoped grind _=_] List.dlookup_isSome
 attribute [scoped grind →] List.perm_nodupKeys
 attribute [scoped grind →] List.Perm.symm
 attribute [scoped grind _=_] List.dlookup_append
