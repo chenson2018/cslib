@@ -41,9 +41,21 @@ inductive Sub : Env Var → Ty Var → Ty Var → Prop
 
 attribute [scoped grind] Sub.top Sub.refl_tvar Sub.trans_tvar Sub.arrow Sub.sum
 
+omit [HasFresh Var] in
 @[grind →]
-lemma Sub.lc (Γ : Env Var) (σ τ : Ty Var) (sub : Sub Γ σ τ) : Γ.Wf ∧ σ.Wf Γ ∧ τ.Wf Γ := 
-  sorry
+lemma Sub.lc (Γ : Env Var) (σ σ' : Ty Var) (sub : Sub Γ σ σ') : Γ.Wf ∧ σ.Wf Γ ∧ σ'.Wf Γ := by
+  induction sub
+  case all Γ σ' σ τ τ' _ _ _ _ cofin => 
+    split_ands
+    · grind
+    · apply Ty.Wf.all (free_union Var)
+      · grind [Ty.Wf.narrow]
+      · intro X mem
+        -- TODO: grind this...
+        have : ⟨X, Binding.sub σ ⟩ :: Γ = [] ++ [⟨X, Binding.sub σ ⟩] ++ Γ := by rfl
+        grind [Ty.Wf.narrow]
+    · apply Ty.Wf.all (free_union Var) <;> grind
+  all_goals grind
 
 end Ty
 
@@ -72,7 +84,38 @@ inductive Typing : Env Var → Term Var → Ty Var → Prop
       (∀ x ∉ L, Typing (⟨x, Binding.ty τ⟩ :: Γ) (t₃ ^ᵗᵗ fvar x) δ) →
       Typing Γ (case t₁ t₂ t₃) δ
 
+open Term Ty Ty.Wf Env.Wf in
 lemma Typing.lc (Γ : Env Var) (t : Term Var) (τ : Ty Var) (der : Typing Γ t τ) :
-    Γ.Wf ∧ t.LC ∧ τ.Wf Γ := sorry
+    Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
+  induction der
+  -- TODO: combine these branches
+  case abs σ Γ _ _ _ _ _ => 
+    let ⟨X,_⟩ := fresh_exists <| free_union Var
+    split_ands
+    · grind
+    · apply LC.abs (free_union Var) <;> grind
+    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = []++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
+      grind [Ty.Wf.strengthen]
+  case tabs => 
+    let ⟨X,mem⟩ := fresh_exists <| free_union Var
+    split_ands
+    · grind
+    · apply LC.tabs (free_union Var) <;> grind
+    · apply all (free_union Var) <;> grind
+  case let' Γ _ σ _ _ _ _ _ _ _ => 
+    let ⟨X,_⟩ := fresh_exists <| free_union Var
+    split_ands
+    · grind
+    · apply LC.let' (free_union Var) <;> grind
+    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = []++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
+      grind [Ty.Wf.strengthen]
+  case case Γ _ σ _ _ _ _ _ _ _ _ _ _ _ => 
+    let ⟨X,_⟩ := fresh_exists <| free_union Var
+    split_ands
+    · grind
+    · apply LC.case (free_union Var) <;> grind
+    · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
+      grind [Ty.Wf.strengthen]
+  all_goals grind [open_lc, cases Ty.Wf, Ty.Wf.from_bind_ty]
 
 end LambdaCalculus.LocallyNameless.Fsub

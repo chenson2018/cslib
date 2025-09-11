@@ -194,12 +194,12 @@ lemma from_bind_ty (wf : Γ.Wf) (bind : Binding.ty σ ∈ Γ.dlookup X) : σ.Wf 
     grind
  
 omit [HasFresh Var] in
-lemma from_env_bind_ty (wf : Env.Wf ([⟨X, Binding.ty σ⟩] ++ Γ)) : σ.Wf Γ := by
+lemma from_env_bind_ty (wf : Env.Wf (⟨X, Binding.ty σ⟩ :: Γ)) : σ.Wf Γ := by
   cases wf
   assumption
 
 omit [HasFresh Var] in
-lemma from_env_bind_sub (wf : Env.Wf ([⟨X, Binding.sub σ⟩] ++ Γ)) : σ.Wf Γ := by
+lemma from_env_bind_sub (wf : Env.Wf (⟨X, Binding.sub σ⟩ :: Γ)) : σ.Wf Γ := by
   cases wf
   assumption
 
