@@ -39,6 +39,7 @@ lemma refl (wf_Γ : Γ.Wf) (wf_σ : σ.Wf Γ) : Sub Γ σ σ := by
   | all => apply all (free_union [Context.dom] Var) <;> grind
   | _ => grind
 
+omit [HasFresh Var] in
 lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ ++ Δ ++ Θ) σ σ' := by
   generalize eq : Γ ++ Θ = ΓΘ at sub
   induction sub generalizing Γ 
@@ -50,8 +51,12 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
     apply all (free_union [Context.dom] Var)
     · grind
     · intro X mem
-      have wf : Env.Wf ((⟨X, Binding.sub σ⟩ :: Γ) ++ Δ ++ Θ) := sorry
-      specialize ih X (by grind) wf (by grind)
+      have wf : Env.Wf ((⟨X, Binding.sub σ⟩ :: Γ) ++ Δ ++ Θ) := by
+        constructor
+        grind
+        grind
+        -- TODO: still problems with grind here...
+        simp_all [keys_append, dom]
       grind
   all_goals grind  
 
