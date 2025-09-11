@@ -60,12 +60,26 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
       grind
   all_goals grind  
 
-@[simp, grind]
+@[simp, grind =]
 def TransOn (δ : Ty Var) := ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ 
 
 -- TODO: make the params of this match up with `narrow`, or maybe even inline it?
 lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ)
-    (sub₂ : Sub Δ δ' δ) : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ := sorry
+    (sub₂ : Sub Δ δ' δ) : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ := by
+  generalize eq : Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ = Θ at sub₁ 
+  induction sub₁ generalizing Γ δ
+  case trans_tvar σ _ σ' X' mem sub ih => 
+    subst eq
+    by_cases eq : X = X'
+    · subst eq
+      apply Sub.trans_tvar (σ := δ')
+      · sorry
+      · apply trans
+        · sorry
+        · sorry
+    · grind
+  case all => apply Sub.all (free_union Var) <;> grind
+  all_goals grind [Ty.Wf.narrow, Env.Wf.narrow]
 
 lemma trans (Γ : Env Var) : Transitive (Sub Γ) := sorry
 
