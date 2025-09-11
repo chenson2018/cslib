@@ -64,6 +64,8 @@ lemma weaken (sub : Sub (Γ ++ Θ) σ σ') (wf : (Γ ++ Δ ++ Θ).Wf) : Sub (Γ 
 def TransOn (δ : Ty Var) := ∀ Γ σ τ, Sub Γ σ δ → Sub Γ δ τ → Sub Γ σ τ 
 
 -- TODO: make the params of this match up with `narrow`, or maybe even inline it?
+-- TODO: more grind work here
+omit [HasFresh Var] in
 lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ)
     (sub₂ : Sub Δ δ' δ) : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ := by
   generalize eq : Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ = Θ at sub₁ 
@@ -72,24 +74,27 @@ lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ
     subst eq
     by_cases eq : X = X'
     · subst eq
+      -- TODO: this pattern appears often
+      have p : ∀ δ, Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ ~ ⟨X, Binding.sub δ⟩ :: (Γ ++ Δ) := by simp
       apply Sub.trans_tvar (σ := δ')
-      · sorry
+      · rw [List.perm_dlookup (p := p δ')] <;> grind
       · apply trans
-        · sorry
-        · sorry
+        · have : Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ = [] ++ (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) := by rfl
+          grind [Sub.weaken]
+        · rw [perm_dlookup (p := p δ), dlookup_cons_eq] at mem <;> grind
     · grind
   case all => apply Sub.all (free_union Var) <;> grind
   all_goals grind [Ty.Wf.narrow, Env.Wf.narrow]
 
-lemma trans (Γ : Env Var) : Transitive (Sub Γ) := sorry
+@[grind]
+lemma TransOn_all (δ : Ty Var) : TransOn δ := sorry
+
+instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) where
+  trans s1 s2 := TransOn_all _ _ _ _ s1 s2
 
 lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) :
     Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ := by
-  apply narrow_aux (δ := δ')
-  · intros Γ _ _ s1 s2
-    exact trans Γ s1 s2 -- TODO: grind this..., Transitive → TransOn
-  · exact sub_narrow
-  · exact sub_δ
+  apply narrow_aux (δ := δ') <;> grind
 
 lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (sub₂ : Sub Δ δ δ') :
     Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := sorry
