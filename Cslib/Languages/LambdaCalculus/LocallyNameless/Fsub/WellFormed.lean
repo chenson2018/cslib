@@ -223,7 +223,11 @@ lemma strengthen (wf : Env.Wf <| Γ ++ [⟨X, Binding.ty τ⟩] ++ Δ) : Env.Wf 
   case cons.sub | cons.ty => constructor <;> grind [Ty.Wf.strengthen, List.nmem_append_keys]
 
 lemma map_subst (wf_env : Env.Wf (Γ ++ [⟨X, Binding.sub τ⟩] ++ Δ)) (wf_τ' : τ'.Wf Δ) :
-    Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := sorry
+    Env.Wf <| Γ.map_val (·[X:=τ']) ++ Δ := by
+  induction Γ generalizing wf_τ' Δ τ' <;> cases wf_env
+  case nil => simp_all
+  case cons.sub | cons.ty =>
+    constructor <;> grind [Ty.Wf.map_subst, List.keys_append, map_val_keys]
 
 end Env.Wf
 
