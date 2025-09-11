@@ -28,9 +28,11 @@ namespace LambdaCalculus.LocallyNameless.Fsub
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
-namespace Ty.Sub
+namespace Ty
 
 open Ty.Wf Env.Wf Context List
+
+namespace Sub
 
 omit [HasFresh Var] in
 @[grind <=]
@@ -99,6 +101,61 @@ lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ [⟨X, Binding.su
 lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (sub₂ : Sub Δ δ δ') :
     Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := sorry
 
-end Ty.Sub
+end Sub
+
+lemma Typing.wekaen (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
+    Typing (Γ ++ Θ ++ Δ) t τ := sorry
+
+lemma Sub.strengthen (sub : Sub (Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := 
+  sorry
+
+lemma Typing.narrow (sub : Sub Γ δ δ') (der : Typing (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) t τ) :
+    Typing (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) t τ := sorry
+
+lemma Typing.subst_tm (der : Typing (Γ ++ [⟨X, Binding.ty σ⟩] ++ Δ) t τ) (der_sub : Typing Δ s σ) :
+    Typing (Γ ++ Δ) (t[X := s]) τ := sorry
+
+lemma Typing.subst_ty (der : Typing (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) t τ) (sub : Sub Γ δ δ') : 
+    Typing (Γ.map_val (·[X := δ]) ++ Δ) (t[X := δ]) (τ[X := δ]) := sorry
+
+open Term Ty
+
+lemma Typing.abs_inv (der : Typing Γ (abs γ' t) τ) (sub : Sub Γ τ (arrow γ δ)) :
+     Sub Γ γ γ'
+  ∧ ∃ δ' L, ∀ x ∉ (L : Finset Var), 
+    Typing ([⟨x, Binding.ty γ'⟩] ++ Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
+  generalize eq : Term.abs γ' t = e at der
+  induction der generalizing t γ' γ δ
+  case abs => sorry
+  case sub => sorry
+  all_goals grind
+
+lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) :
+     Sub Γ γ γ'
+  ∧ ∃ δ' L, ∀ X ∉ (L : Finset Var),
+     Typing ([⟨X, Binding.sub γ⟩] ++ Γ) (t ^ᵗᵞ fvar X) (δ' ^ᵞ fvar X)
+     ∧ Sub ([⟨X, Binding.sub γ⟩] ++ Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := sorry
+
+lemma Typing.inl_inv (der : Typing Γ (inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
+  ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := sorry    
+
+lemma Typing.inr_inv (der : Typing Γ (inr t) T) (sub : Sub Γ T (sum γ δ)) :
+  ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := sorry
+
+lemma Typing.preservation (der : Typing Γ t τ) (step : Red t t') : Typing Γ t' τ := 
+  sorry
+
+lemma Typing.canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
+  ∃ δ t', t = abs δ t' := sorry
+
+lemma Typing.canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
+  ∃ δ t', t = tabs δ t' := sorry
+
+lemma Typing.canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
+  ∃ t', t = inl t' ∨ t = inr t' := sorry
+
+lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := sorry
+
+end Ty
 
 end LambdaCalculus.LocallyNameless.Fsub
