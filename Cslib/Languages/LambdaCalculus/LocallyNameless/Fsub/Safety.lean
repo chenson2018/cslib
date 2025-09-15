@@ -99,7 +99,22 @@ lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ [⟨X, Binding.su
   apply narrow_aux (δ := δ') <;> grind
 
 lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (sub₂ : Sub Δ δ δ') :
-    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := sorry
+    Sub (Γ.map_val (·[X:=δ]) ++ Δ) (σ[X:=δ]) (τ[X:=δ]) := by
+  generalize eq : Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ = Θ at sub₁ 
+  induction sub₁ generalizing Γ
+  case trans_tvar σ Γ σ' X' mem sub ih =>
+    subst eq
+    by_cases eq : X' = X <;> simp only [←Ty.subst_def, Ty.subst, eq, reduceIte] <;> simp only [Ty.subst_def]
+    · sorry
+    · have : (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ)✓ := by grind
+      have : X ∉ dom Γ := sorry
+      --rw [←map_subst_nmem]
+      sorry
+  case all =>
+    apply Sub.all (free_union Var)
+    · grind
+    · sorry
+  all_goals grind [Ty.Wf.map_subst, Env.Wf.map_subst]
 
 end Sub
 
