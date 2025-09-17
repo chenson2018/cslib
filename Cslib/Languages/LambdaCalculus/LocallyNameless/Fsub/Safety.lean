@@ -150,8 +150,12 @@ lemma Typing.wekaen (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
   case case => sorry
   all_goals grind [Sub.weaken, Ty.Wf.from_env_bind_ty, Ty.Wf.from_env_bind_sub, Ty.Wf.weaken]
 
-lemma Sub.strengthen (sub : Sub (Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := 
-  sorry
+omit [HasFresh Var] in
+lemma Sub.strengthen (sub : Sub (Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := by
+  generalize eq : Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ = Θ at sub
+  induction sub generalizing Γ 
+  case all => apply Sub.all (free_union Var) <;> grind
+  all_goals grind [Ty.Wf.strengthen, Env.Wf.strengthen]
 
 lemma Typing.narrow (sub : Sub Γ δ δ') (der : Typing (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) t τ) :
     Typing (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) t τ := sorry
