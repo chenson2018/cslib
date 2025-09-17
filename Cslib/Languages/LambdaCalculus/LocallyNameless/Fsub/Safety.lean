@@ -105,21 +105,50 @@ lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (s
   case trans_tvar σ Γ σ' X' mem sub ih =>
     subst eq
     by_cases eq : X' = X <;> simp only [←Ty.subst_def, Ty.subst, eq, reduceIte] <;> simp only [Ty.subst_def]
-    · sorry
+    · trans
+      · rw [←List.nil_append (map_val _ _ ++ _), ←List.append_assoc]
+        apply Sub.weaken
+        exact sub₂
+        grind
+      · sorry          
     · have : (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ)✓ := by grind
       have : X ∉ dom Γ := sorry
-      --rw [←map_subst_nmem]
+      have mem' : Binding.sub σ ∈ dlookup X' (Γ ++ Δ) := by grind
+      have mem'' : Binding.sub σ ∈ dlookup X' (Γ.map_val (·[X:=δ]) ++ Δ) := sorry
+      apply Sub.trans_tvar mem''
       sorry
-  case all =>
+  case all σ _ τ' τ _ _ _ _ ih =>
     apply Sub.all (free_union Var)
     · grind
-    · sorry
+    · subst eq
+      simp only [Ty.subst_def]
+      intro X' nmem
+      rw [←Ty.open_subst_var, ←Ty.open_subst_var]
+      have := @ih X' (by grind) (⟨X', Binding.sub σ⟩ :: Γ)
+      all_goals grind [Binding.subst_sub]
   all_goals grind [Ty.Wf.map_subst, Env.Wf.map_subst]
 
 end Sub
 
 lemma Typing.wekaen (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
-    Typing (Γ ++ Θ ++ Δ) t τ := sorry
+    Typing (Γ ++ Θ ++ Δ) t τ := by
+  generalize eq : Γ ++ Δ = ΓΔ at der
+  induction der generalizing Γ wf
+  case var mem => 
+    subst eq
+    have s : Γ ++ Δ <+ (Γ ++ Θ ++ Δ) := by grind
+    -- TODO: grind here???
+    apply Typing.var wf
+    apply sublist_dlookup (s := s) <;> grind
+  case abs σ _ _ _ _ h h' => 
+    subst eq
+    apply Typing.abs (free_union Var)
+    intro X nmem
+    sorry
+  case tabs => sorry
+  case let' => sorry
+  case case => sorry
+  all_goals grind [Sub.weaken, Ty.Wf.from_env_bind_ty, Ty.Wf.from_env_bind_sub, Ty.Wf.weaken]
 
 lemma Sub.strengthen (sub : Sub (Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ) σ τ) :  Sub (Γ ++ Δ) σ τ := 
   sorry

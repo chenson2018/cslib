@@ -84,8 +84,12 @@ inductive Typing : Env Var → Term Var → Ty Var → Prop
       (∀ x ∉ L, Typing (⟨x, Binding.ty τ⟩ :: Γ) (t₃ ^ᵗᵗ fvar x) δ) →
       Typing Γ (case t₁ t₂ t₃) δ
 
+namespace Typing
+
+attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
+
 open Term Ty Ty.Wf Env.Wf in
-lemma Typing.lc (Γ : Env Var) (t : Term Var) (τ : Ty Var) (der : Typing Γ t τ) :
+lemma lc (Γ : Env Var) (t : Term Var) (τ : Ty Var) (der : Typing Γ t τ) :
     Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
   induction der
   -- TODO: combine these branches
@@ -117,5 +121,7 @@ lemma Typing.lc (Γ : Env Var) (t : Term Var) (τ : Ty Var) (der : Typing Γ t �
     · have eq : ⟨X, Binding.ty σ⟩ :: Γ = [] ++ [⟨X, Binding.ty σ⟩] ++ Γ := by rfl
       grind [Ty.Wf.strengthen]
   all_goals grind [open_lc, cases Ty.Wf, Ty.Wf.from_bind_ty]
+
+end Typing
 
 end LambdaCalculus.LocallyNameless.Fsub
