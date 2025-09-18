@@ -218,10 +218,24 @@ lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ
   all_goals grind
 
 lemma Typing.inl_inv (der : Typing Γ (inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
-  ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := sorry    
+    ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := by
+  generalize eq : t.inl =t at der
+  induction der generalizing γ δ
+  case sub Γ _ τ τ' _ _ ih => 
+    -- TODO: tell grind to use trans??
+    have sub' : Sub Γ τ (γ.sum δ) := by trans τ' <;> grind
+    grind  
+  all_goals grind [cases Sub]
 
 lemma Typing.inr_inv (der : Typing Γ (inr t) T) (sub : Sub Γ T (sum γ δ)) :
-  ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := sorry
+    ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := by
+  generalize eq : t.inr =t at der
+  induction der generalizing γ δ
+  case sub Γ _ τ τ' _ _ ih => 
+    -- TODO: tell grind to use trans??
+    have sub' : Sub Γ τ (γ.sum δ) := by trans τ' <;> grind
+    grind  
+  all_goals grind [cases Sub]
 
 lemma Typing.preservation (der : Typing Γ t τ) (step : Red t t') : Typing Γ t' τ := by
   induction der generalizing t'
