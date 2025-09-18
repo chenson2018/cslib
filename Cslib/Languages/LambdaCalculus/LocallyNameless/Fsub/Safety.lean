@@ -258,14 +258,26 @@ lemma Typing.preservation (der : Typing Γ t τ) (step : Red t t') : Typing Γ t
     · sorry
   all_goals grind [cases Red]
 
+omit [HasFresh Var] in
 lemma Typing.canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
-  ∃ δ t', t = abs δ t' := sorry
+    ∃ δ t', t = abs δ t' := by
+  generalize eq  : σ.arrow τ = γ at der
+  generalize eq' : [] = Γ at der
+  induction der generalizing σ τ <;> grind [cases Value, cases Sub]
 
+omit [HasFresh Var] in
 lemma Typing.canonical_form_tabs (val : Value t) (der : Typing [] t (all σ τ)) :
-  ∃ δ t', t = tabs δ t' := sorry
+    ∃ δ t', t = tabs δ t' := by
+  generalize eq  : σ.all τ = γ at der
+  generalize eq' : [] = Γ at der
+  induction der generalizing σ τ <;> grind [cases Value, cases Sub]
 
+omit [HasFresh Var] in
 lemma Typing.canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) :
-  ∃ t', t = inl t' ∨ t = inr t' := sorry
+    ∃ t', t = inl t' ∨ t = inr t' := by
+  generalize eq  : σ.sum τ = γ at der
+  generalize eq' : [] = Γ at der
+  induction der generalizing σ τ <;> grind [cases Value, cases Sub]
 
 lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := sorry
 
