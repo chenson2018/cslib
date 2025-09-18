@@ -182,7 +182,12 @@ lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ
      Sub Γ γ γ'
   ∧ ∃ δ' L, ∀ X ∉ (L : Finset Var),
      Typing ([⟨X, Binding.sub γ⟩] ++ Γ) (t ^ᵗᵞ fvar X) (δ' ^ᵞ fvar X)
-     ∧ Sub ([⟨X, Binding.sub γ⟩] ++ Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := sorry
+     ∧ Sub ([⟨X, Binding.sub γ⟩] ++ Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := by
+  generalize eq : tabs γ' t = e at der
+  induction der generalizing γ δ t γ'
+  case sub => sorry
+  case tabs => sorry
+  all_goals grind
 
 lemma Typing.inl_inv (der : Typing Γ (inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
   ∃ γ', Typing Γ t γ' ∧ Sub Γ γ' γ := sorry    
