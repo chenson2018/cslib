@@ -195,8 +195,26 @@ lemma Typing.inl_inv (der : Typing Γ (inl t) τ) (sub : Sub Γ τ (sum γ δ)) 
 lemma Typing.inr_inv (der : Typing Γ (inr t) T) (sub : Sub Γ T (sum γ δ)) :
   ∃ δ', Typing Γ t δ' ∧ Sub Γ δ' δ := sorry
 
-lemma Typing.preservation (der : Typing Γ t τ) (step : Red t t') : Typing Γ t' τ := 
-  sorry
+lemma Typing.preservation (der : Typing Γ t τ) (step : Red t t') : Typing Γ t' τ := by
+  induction der generalizing t'
+  case app der₁ _ _ _ => 
+    cases step with
+    | abs => sorry
+    | _ => grind
+  case tapp => 
+    cases step
+    · grind
+    · sorry
+  case let' => 
+    cases step
+    · sorry
+    · sorry
+  case case => 
+    cases step
+    · sorry
+    · sorry
+    · sorry
+  all_goals grind [cases Red]
 
 lemma Typing.canonical_form_abs (val : Value t) (der : Typing [] t (arrow σ τ)) :
   ∃ δ t', t = abs δ t' := sorry
