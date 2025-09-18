@@ -174,8 +174,20 @@ lemma Typing.abs_inv (der : Typing Γ (abs γ' t) τ) (sub : Sub Γ τ (arrow γ
     Typing ([⟨x, Binding.ty γ'⟩] ++ Γ) (t ^ᵗᵗ .fvar x) δ' ∧ Sub Γ δ' δ := by
   generalize eq : Term.abs γ' t = e at der
   induction der generalizing t γ' γ δ
-  case abs => sorry
-  case sub => sorry
+  case abs τ L _ _ => 
+    cases eq
+    cases sub
+    split_ands
+    · assumption
+    · exists τ, L
+      grind
+  case sub Γ _ τ τ' _ _ ih => 
+    subst eq
+    have sub' : Sub Γ τ (γ.arrow δ) := by trans τ' <;> grind
+    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
+    split_ands
+    · assumption
+    · exists δ', L
   all_goals grind
 
 lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ δ)) :
@@ -185,8 +197,24 @@ lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ
      ∧ Sub ([⟨X, Binding.sub γ⟩] ++ Γ) (δ' ^ᵞ fvar X) (δ ^ᵞ fvar X) := by
   generalize eq : tabs γ' t = e at der
   induction der generalizing γ δ t γ'
-  case sub => sorry
-  case tabs => sorry
+  case tabs σ Γ _ τ L der _ =>
+    cases eq
+    cases sub with | all L' sub => 
+    split_ands
+    · assumption
+    · exists τ, L ∪ L'
+      intro X nmem
+      split_ands
+      -- TODO: something wrong here, seems backwards...
+      · sorry
+      · grind
+  case sub Γ _ τ τ' _ _ ih => 
+    subst eq
+    have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
+    obtain ⟨_, δ', L, _⟩ := ih sub' (by rfl)
+    split_ands
+    · assumption
+    · exists δ', L
   all_goals grind
 
 lemma Typing.inl_inv (der : Typing Γ (inl t) τ) (sub : Sub Γ τ (sum γ δ)) :
