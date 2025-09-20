@@ -130,7 +130,7 @@ lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (s
 
 end Sub
 
-lemma Typing.wekaen (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
+lemma Typing.weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) : 
     Typing (Γ ++ Θ ++ Δ) t τ := by
   generalize eq : Γ ++ Δ = ΓΔ at der
   induction der generalizing Γ wf
@@ -157,7 +157,7 @@ lemma Sub.strengthen (sub : Sub (Γ ++ [⟨X, Binding.ty δ⟩] ++ Δ) σ τ) : 
   case all => apply Sub.all (free_union Var) <;> grind
   all_goals grind [Ty.Wf.strengthen, Env.Wf.strengthen]
 
-lemma Typing.narrow (sub : Sub Γ δ δ') (der : Typing (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) t τ) :
+lemma Typing.narrow (sub : Sub Δ δ δ') (der : Typing (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) t τ) :
     Typing (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) t τ := sorry
 
 lemma Typing.subst_tm (der : Typing (Γ ++ [⟨X, Binding.ty σ⟩] ++ Δ) t τ) (der_sub : Typing Δ s σ) :
@@ -198,16 +198,13 @@ lemma Typing.tabs_inv (der : Typing Γ (tabs γ' t) τ) (sub : Sub Γ τ (all γ
   generalize eq : tabs γ' t = e at der
   induction der generalizing γ δ t γ'
   case tabs σ Γ _ τ L der _ =>
-    cases eq
     cases sub with | all L' sub => 
     split_ands
-    · assumption
+    · grind
     · exists τ, L ∪ L'
-      intro X nmem
-      split_ands
-      -- TODO: something wrong here, seems backwards...
-      · sorry
-      · grind
+      intro X _
+      have eq : [⟨X, Binding.sub γ⟩] ++ Γ = [] ++ [⟨X, Binding.sub γ⟩] ++ Γ :=by rfl
+      grind [Typing.narrow]
   case sub Γ _ τ τ' _ _ ih => 
     subst eq
     have sub' : Sub Γ τ (γ.all δ) := by trans τ' <;> grind
