@@ -276,7 +276,56 @@ lemma Typing.canonical_form_sum (val : Value t) (der : Typing [] t (sum σ τ)) 
   generalize eq' : [] = Γ at der
   induction der generalizing σ τ <;> grind [cases Value, cases Sub]
 
-lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := sorry
+lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := by
+  generalize eq : [] = Γ at der
+  have der' : Typing Γ t τ := by assumption
+  induction der <;> subst eq <;> simp only [forall_const] at *
+  case var mem => grind
+  case app l r ih_l ih_r => sorry
+  case tapp σ' der _ ih => 
+    right
+    specialize ih der
+    cases ih with
+    | inl val => 
+        obtain ⟨_, t, _⟩ := Typing.canonical_form_tabs val der
+        exists t ^ᵗᵞ σ'
+        grind
+    | inr red => 
+        obtain ⟨t', _⟩ := red
+        exists tapp t' σ'
+        grind
+  case let' => sorry
+  -- TODO: inverse not used here???
+  case inl der _ ih =>
+    cases (ih der) with
+    | inl val => grind
+    | inr red => 
+        right
+        obtain ⟨t', _⟩ := red
+        exists inl t'
+        grind
+  case inr der _ ih =>
+    cases (ih der) with
+    | inl val => grind
+    | inr red => 
+        right
+        obtain ⟨t', _⟩ := red
+        exists inr t'
+        grind
+  case case => sorry
+  case sub => grind
+  case abs L _ _=> 
+    left
+    constructor
+    apply LC.abs L
+    · sorry
+    · sorry
+  case tabs L _ _=>
+    left
+    constructor
+    apply LC.tabs L
+    · sorry
+    · sorry
 
 end Ty
 

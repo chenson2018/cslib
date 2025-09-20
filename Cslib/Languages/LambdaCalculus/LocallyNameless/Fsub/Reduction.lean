@@ -69,6 +69,7 @@ lemma open_tm_body (body : t₁.body) (lc : t₂.LC) : (t₁ ^ᵗᵗ t₂).LC :=
 end
 
 /-- Values are irreducible terms. -/
+@[grind]
 inductive Value : Term Var → Prop
   | abs : LC (abs σ t₁) → Value (abs σ t₁)
   | tabs : LC (tabs σ t₁) → Value (tabs σ t₁)
@@ -80,6 +81,7 @@ lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by
   induction val <;> grind
 
 /-- The call-by-value reduction relation. -/
+@[grind]
 inductive Red : Term Var → Term Var → Prop
   | appₗ : LC t₂ → Red t₁ t₁' → Red (app t₁ t₂) (app t₁' t₂)
   | appᵣ : Value t₁ → Red t₂ t₂' → Red (app t₁ t₂) (app t₁ t₂')
