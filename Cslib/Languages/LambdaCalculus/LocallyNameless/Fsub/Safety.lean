@@ -89,22 +89,17 @@ lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ
   case all => apply Sub.all (free_union Var) <;> grind
   all_goals grind [Ty.Wf.narrow, Env.Wf.narrow]
 
+-- TODO: inline in the instance?
+omit [HasFresh Var] in
 @[grind]
 lemma TransOn_all (δ : Ty Var) : TransOn δ := by
   intro Γ σ τ sub₁ sub₂ 
   have δ_lc : δ.LC := by grind
-  --let δ' := δ 
   induction δ_lc generalizing Γ σ τ
   case top => cases sub₁ <;> cases sub₂ <;> grind
-  case var =>
-    -- TODO: not sure about this case...
-    cases sub₁ <;> cases sub₂
-    case trans_tvar.trans_tvar X' σ' X mem sub σ mem' sub' => 
-      by_cases eq : X = X'
-      · have eq : σ = σ' := by grind
-        grind
-      · sorry
-    all_goals grind
+  case var X =>
+    generalize eq : fvar X = γ at sub₁ 
+    induction sub₁ <;> grind [cases Sub]
   case arrow σ' τ' _ _ _ _ => 
     generalize eq : σ'.arrow τ' = γ at sub₁
     induction sub₁ <;> grind [cases Sub]
@@ -122,20 +117,21 @@ lemma TransOn_all (δ : Ty Var) : TransOn δ := by
         grind
       case refl.all Γ _ τ'' _ _ s1 σ τ _ _ s2 _ _ => 
         apply all (free_union Var)
-        grind
-        intro X nmem
-        specialize s1 X (by grind)
-        specialize s2 X (by grind)
-        have s1' : Sub (⟨X, Binding.sub σ⟩ :: Γ) (τ'' ^ᵞ fvar X) (τ' ^ᵞ fvar X) := by
-          have eq : ∀ σ, ⟨X, Binding.sub σ⟩ :: Γ = [] ++ [⟨X, Binding.sub σ⟩] ++ Γ := by grind
-          rw [eq]
-          apply Sub.narrow_aux (δ := σ') <;> grind
-        grind
+        · grind
+        · intro X nmem
+          specialize s1 X (by grind)
+          specialize s2 X (by grind)
+          have s1' : Sub (⟨X, Binding.sub σ⟩ :: Γ) (τ'' ^ᵞ fvar X) (τ' ^ᵞ fvar X) := by
+            have eq : ∀ σ, ⟨X, Binding.sub σ⟩ :: Γ = [] ++ [⟨X, Binding.sub σ⟩] ++ Γ := by grind
+            rw [eq]
+            apply Sub.narrow_aux (δ := σ') <;> grind
+          grind
     all_goals grind
 
 instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) where
   trans s1 s2 := TransOn_all _ _ _ _ s1 s2
 
+omit [HasFresh Var] in
 lemma narrow (sub_δ : Sub Δ δ δ') (sub_narrow : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) :
     Sub (Γ ++ [⟨X, Binding.sub δ⟩] ++ Δ) σ τ := by
   apply narrow_aux (δ := δ') <;> grind
