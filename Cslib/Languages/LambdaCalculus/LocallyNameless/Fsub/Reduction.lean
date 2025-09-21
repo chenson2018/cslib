@@ -36,12 +36,15 @@ section
 
 variable {t₁ t₂ t₃ : Term Var}
 
+@[scoped grind <=]
 lemma body_from_lc_let (lc : (let' t₁ t₂).LC) : t₂.body := by
   cases lc with | let' L => exists L 
 
+@[scoped grind <=]
 lemma body_inl_from_lc_case (lc : (case t₁ t₂ t₃).LC) : t₂.body := by
   cases lc with | case L => exists L
 
+@[scoped grind <=]
 lemma body_inr_from_lc_case (lc : (case t₁ t₂ t₃).LC) : t₃.body := by
   cases lc with | case L => exists L
 

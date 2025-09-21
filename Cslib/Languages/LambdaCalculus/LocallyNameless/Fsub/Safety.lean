@@ -28,6 +28,7 @@ namespace LambdaCalculus.LocallyNameless.Fsub
 
 variable {Γ Δ Θ : Env Var} {σ τ δ : Ty Var}
 
+-- TODO: wrong namespace!
 namespace Ty
 
 open Ty.Wf Env.Wf Context List
@@ -89,7 +90,48 @@ lemma narrow_aux (trans : TransOn δ) (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ
   all_goals grind [Ty.Wf.narrow, Env.Wf.narrow]
 
 @[grind]
-lemma TransOn_all (δ : Ty Var) : TransOn δ := sorry
+lemma TransOn_all (δ : Ty Var) : TransOn δ := by
+  intro Γ σ τ sub₁ sub₂ 
+  have δ_lc : δ.LC := by grind
+  --let δ' := δ 
+  induction δ_lc generalizing Γ σ τ
+  case top => cases sub₁ <;> cases sub₂ <;> grind
+  case var =>
+    -- TODO: not sure about this case...
+    cases sub₁ <;> cases sub₂
+    case trans_tvar.trans_tvar X' σ' X mem sub σ mem' sub' => 
+      by_cases eq : X = X'
+      · have eq : σ = σ' := by grind
+        grind
+      · sorry
+    all_goals grind
+  case arrow σ' τ' _ _ _ _ => 
+    generalize eq : σ'.arrow τ' = γ at sub₁
+    induction sub₁ <;> grind [cases Sub]
+  case sum σ' τ' _ _ _ _ => 
+    generalize eq : σ'.sum τ' = γ at sub₁
+    induction sub₁ <;> grind [cases Sub]
+  case all σ' τ' _ _ _ _ _ => 
+    generalize eq : σ'.all τ' = γ at sub₁
+    induction sub₁
+    case all =>
+      cases eq
+      cases sub₂
+      case refl.top Γ σ'' τ'' _ _ _ _ _ _ _ => 
+        have : Sub Γ (σ''.all τ'') (σ'.all τ') := by apply all (free_union Var) <;> grind
+        grind
+      case refl.all Γ _ τ'' _ _ s1 σ τ _ _ s2 _ _ => 
+        apply all (free_union Var)
+        grind
+        intro X nmem
+        specialize s1 X (by grind)
+        specialize s2 X (by grind)
+        have s1' : Sub (⟨X, Binding.sub σ⟩ :: Γ) (τ'' ^ᵞ fvar X) (τ' ^ᵞ fvar X) := by
+          have eq : ∀ σ, ⟨X, Binding.sub σ⟩ :: Γ = [] ++ [⟨X, Binding.sub σ⟩] ++ Γ := by grind
+          rw [eq]
+          apply Sub.narrow_aux (δ := σ') <;> grind
+        grind
+    all_goals grind
 
 instance (Γ : Env Var) : Trans (Sub Γ) (Sub Γ) (Sub Γ) where
   trans s1 s2 := TransOn_all _ _ _ _ s1 s2
@@ -281,7 +323,23 @@ lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := b
   have der' : Typing Γ t τ := by assumption
   induction der <;> subst eq <;> simp only [forall_const] at *
   case var mem => grind
-  case app l r ih_l ih_r => sorry
+  case app t₁ _ _ t₂ l r ih_l ih_r => 
+    right
+    cases ih_l l with
+    | inl val_l => 
+        cases ih_r r with
+        | inl val_r => 
+            have ⟨σ, t₁, eq⟩ := Typing.canonical_form_abs val_l l
+            exists t₁ ^ᵗᵗ t₂
+            grind
+        | inr red_r => 
+            obtain ⟨t₂', _⟩ := red_r
+            exists t₁.app t₂'
+            grind
+    | inr red_l => 
+        obtain ⟨t₁', _⟩ := red_l
+        exists t₁'.app t₂
+        grind
   case tapp σ' der _ ih => 
     right
     specialize ih der
@@ -294,7 +352,16 @@ lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := b
         obtain ⟨t', _⟩ := red
         exists tapp t' σ'
         grind
-  case let' => sorry
+  case let' t₁ σ t₂ τ L der _ _ ih => 
+    right
+    cases ih der with
+    | inl _ => 
+        exists t₂ ^ᵗᵗ t₁
+        grind
+    | inr red => 
+        obtain ⟨t₁', _⟩ := red
+        exists t₁'.let' t₂
+        grind
   -- TODO: inverse not used here???
   case inl der _ ih =>
     cases (ih der) with
@@ -312,20 +379,25 @@ lemma Typing.progress (der : Typing [] t τ) : Value t ∨ ∃ t', Red t t' := b
         obtain ⟨t', _⟩ := red
         exists inr t'
         grind
-  case case => sorry
+  case case t₁ _ _ t₂ _ t₃ _ der _ _ _ _ ih => 
+    right
+    cases ih der with
+    | inl val => 
+        have ⟨t₁, lr⟩ := Typing.canonical_form_sum val der
+        cases lr <;> [exists t₂ ^ᵗᵗ t₁; exists t₃ ^ᵗᵗ t₁] <;> grind
+    | inr red => 
+        obtain ⟨t₁', _⟩ := red
+        exists t₁'.case t₂ t₃
+        grind
   case sub => grind
-  case abs L _ _=> 
+  case abs σ _ τ L _ _=> 
     left
     constructor
-    apply LC.abs L
-    · sorry
-    · sorry
+    apply LC.abs L <;> grind
   case tabs L _ _=>
     left
     constructor
-    apply LC.tabs L
-    · sorry
-    · sorry
+    apply LC.tabs L <;> grind
 
 end Ty
 

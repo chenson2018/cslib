@@ -88,8 +88,10 @@ namespace Typing
 
 attribute [grind] Typing.var Typing.app Typing.tapp Typing.sub Typing.inl Typing.inr
 
+-- TODO: better name
 open Term Ty Ty.Wf Env.Wf in
-lemma lc (Γ : Env Var) (t : Term Var) (τ : Ty Var) (der : Typing Γ t τ) :
+@[grind →]
+lemma lc {Γ : Env Var} {t : Term Var} {τ : Ty Var} (der : Typing Γ t τ) :
     Γ.Wf ∧ t.LC ∧ τ.Wf Γ := by
   induction der
   -- TODO: combine these branches
