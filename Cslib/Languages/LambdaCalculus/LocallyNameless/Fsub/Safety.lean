@@ -143,12 +143,18 @@ lemma map_subst (sub₁ : Sub (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ) σ τ) (s
   case trans_tvar σ Γ σ' X' mem sub ih =>
     subst eq
     by_cases eq : X' = X <;> simp only [←Ty.subst_def, Ty.subst, eq, reduceIte] <;> simp only [Ty.subst_def]
-    · trans
+    · trans δ'
       · rw [←List.nil_append (map_val _ _ ++ _), ←List.append_assoc]
-        apply Sub.weaken
-        exact sub₂
+        grind [Sub.weaken]
+      · have : (Γ ++ [⟨X', Binding.sub δ'⟩] ++ Δ)✓ := by grind
+        have nmem_Γ : X' ∉ Γ.dom := sorry
+        have eq : σ = δ' := sorry
+        have : σ = σ[X':=δ] := by
+          apply Ty.subst_fresh
+          refine Ty.wf.nmem_fv ?_ nmem_Γ
+          subst eq
+          sorry 
         grind
-      · sorry          
     · have : (Γ ++ [⟨X, Binding.sub δ'⟩] ++ Δ)✓ := by grind
       have : X ∉ dom Γ := sorry
       have mem' : Binding.sub σ ∈ dlookup X' (Γ ++ Δ) := by grind
@@ -182,7 +188,9 @@ lemma Typing.weaken (der : Typing (Γ ++ Δ) t τ) (wf : (Γ ++ Θ ++ Δ).Wf) :
     subst eq
     apply Typing.abs (free_union Var)
     intro X nmem
-    sorry
+    have := @h X (by grind)
+    refine @h' X (by grind) (⟨X, Binding.ty σ⟩ :: Γ) ?_ (by rfl)
+    sorry      
   case tabs => sorry
   case let' => sorry
   case case => sorry
