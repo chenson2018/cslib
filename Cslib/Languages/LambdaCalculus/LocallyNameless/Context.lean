@@ -34,7 +34,6 @@ open List
 attribute [scoped grind =] Option.mem_def
 attribute [scoped grind _=_] List.append_eq
 attribute [scoped grind =] List.Nodup
-attribute [scoped grind =] List.NodupKeys
 attribute [scoped grind _=_] List.singleton_append
 
 -- a few grinds on Option:
