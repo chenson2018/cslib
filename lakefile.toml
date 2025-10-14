@@ -6,6 +6,7 @@ testDriver = "CslibTests"
 [leanOptions]
 weak.linter.mathlibStandardSet = true
 weak.linter.flexible = true
+weak.linter.tacticAnalysis.mergeWithGrind = true
 
 [[require]]
 name = "mathlib"

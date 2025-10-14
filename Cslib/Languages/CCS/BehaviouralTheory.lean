@@ -149,7 +149,6 @@ theorem bisimilarity_par_assoc :
         use p.par (q'.par r')
         grind [Tr.parR, Tr.com, ParAssoc.assoc]
       case com μ p' q' _ _ =>
-        unfold Act.Co at *
         grind
   case left.assoc =>
     intro s2' htr
@@ -178,7 +177,6 @@ theorem bisimilarity_par_assoc :
         refine ⟨ (p'.par q).par r', ?_, ParAssoc.assoc⟩
         apply Tr.com (μ := μ) (μ' := μ') <;> grind [Tr.parL]
       case com =>
-        unfold Act.Co at *
         grind
   all_goals grind [ParAssoc]
 
