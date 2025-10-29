@@ -1,6 +1,6 @@
 name: PR Summary
 on:
-  pull_request_target:
+  pull_request:
 
 # Limit permissions for GITHUB_TOKEN for the entire workflow
 permissions:
