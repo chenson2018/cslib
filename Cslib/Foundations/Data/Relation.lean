@@ -7,13 +7,54 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 import Cslib.Init
 import Mathlib.Logic.Relation
 
+-- TODO: some of this should be upstreamed to Mathlib?
+-- I'm going to put this all in `Relation` at the moment and worry about namepsacing cleanup later
+namespace Relation
+
+variable {α : Type*} (r : α → α → Prop)
+
+@[grind →]
+theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
+  induction h <;> grind [EqvGen]
+
+@[grind →]
+theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
+  induction h <;> grind [EqvGen]
+
+@[grind →]
+theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
+  induction h <;> grind [EqvGen]
+
+local infix:50 " ⇓ " => Join (ReflTransGen r)
+local infixr:50 " ⭢ " => r
+local infixr:50 " ↠ " => ReflTransGen r
+local infixr:50 " ≈ " => EqvGen r
+
+/-- A relation has the diamond property when all reductions with a common origin are joinable -/
+abbrev Diamond := ∀ {A B C : α}, A ⭢ B → A ⭢ C → Join r B C
+
+abbrev ChurchRosser := ∀ {x y}, x ≈ y → x ⇓ y
+
+abbrev Confluent := Diamond (· ↠ ·)
+
+abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂ 
+
+theorem ChurchRosser_toConfluent (h : ChurchRosser r) : Confluent r := by
+  grind [EqvGen]
+
+theorem Confluent_toSemiConfluent (h : Confluent r) : SemiConfluent r := by
+  intro _ _ _ x_y₂ x_y₁
+  exact symmetric_join <| h x_y₂ (.single x_y₁)
+
+proof_wanted SemiConfluent_toChurchRosser (h : SemiConfluent r) : (ChurchRosser r)
+
+end Relation
+
 /-! # Relations -/
 
 namespace Cslib
 
 universe u v
-
-section Relation
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def Relation.UpTo (r s : α → α → Prop) : α → α → Prop := Relation.Comp s (Relation.Comp r s)
@@ -79,7 +120,5 @@ theorem church_rosser_of_diamond {α : Type*} {r : α → α → Prop}
   constructor
   · exact Relation.ReflGen.single hd.1
   · exact Relation.ReflTransGen.single hd.2
-
-end Relation
 
 end Cslib
