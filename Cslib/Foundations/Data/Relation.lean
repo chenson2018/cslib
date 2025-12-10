@@ -37,7 +37,11 @@ abbrev ChurchRosser := ∀ {x y}, x ≈ y → x ⇓ y
 
 abbrev Confluent := Diamond (· ↠ ·)
 
-abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂ 
+abbrev Reducible (x : α) : Prop := ∃ y, r x y
+
+abbrev Normal (x : α) : Prop := ¬Reducible r x
+
+abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
 
 theorem ChurchRosser_toConfluent (h : ChurchRosser r) : Confluent r := by
   grind [EqvGen]
@@ -47,6 +51,27 @@ theorem Confluent_toSemiConfluent (h : Confluent r) : SemiConfluent r := by
   exact symmetric_join <| h x_y₂ (.single x_y₁)
 
 proof_wanted SemiConfluent_toChurchRosser (h : SemiConfluent r) : (ChurchRosser r)
+
+-- 2.1.6
+attribute [grind] ReflTransGen
+theorem ChurchRosser_Normal₁ (h1 : ChurchRosser r) (h2 : EqvGen r x y) : Normal r y → ReflTransGen r x y := by
+  intro hn
+  --simp only [Normal, Reducible, not_exists] at hn
+  induction h2
+  case rel x y xy => exact .single xy
+  case refl x' => exact .refl
+  case symm x y xy ih =>
+    have hjoin := h1 xy
+    obtain ⟨ a, hl, hr ⟩ := hjoin
+    -- simp [Normal] at hn
+    have hcases := Relation.ReflTransGen.cases_head hl
+    cases hcases
+    case inl heq => grind
+    case inr h =>
+      obtain ⟨ c, h2, h3 ⟩ := h
+      simp [Normal] at hn
+      grind
+  sorry
 
 end Relation
 
