@@ -50,12 +50,14 @@ abbrev Reducible (x : α) : Prop := ∃ y, r x y
 
 abbrev Normal (x : α) : Prop := ¬Reducible r x
 
+abbrev Normalizing (a : α) := ∃ b, ReflTransGen r a b ∧ Normal r b
+
 theorem normal_eq {r} (h : Normal r x) (xy : r x y) : x = y := by
   grind
 
 @[grind =>]
 theorem ReflTransGen.normal_eq {r} (h : Normal r x) (xy : ReflTransGen r x y) : x = y := by
-  induction xy <;> grind 
+  induction xy <;> grind
 
 abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
 
