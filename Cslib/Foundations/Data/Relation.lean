@@ -6,25 +6,34 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 import Cslib.Init
 import Mathlib.Logic.Relation
+import Mathlib.Data.List.TFAE
 
 -- TODO: some of this should be upstreamed to Mathlib?
 -- I'm going to put this all in `Relation` at the moment and worry about namepsacing cleanup later
 namespace Relation
 
+attribute [scoped grind] ReflGen TransGen ReflTransGen EqvGen
+
+-- TODO: grind pattern these with constraints
+/-
+#check ReflTransGen.single
+#check ReflTransGen.trans
+-/
+
 variable {α : Type*} (r : α → α → Prop)
 
-@[grind →]
 theorem ReflGen.to_eqvGen (h : ReflGen r a b) : EqvGen r a b := by
-  induction h <;> grind [EqvGen]
+  induction h <;> grind
 
-@[grind →]
 theorem TransGen.to_eqvGen (h : TransGen r a b) : EqvGen r a b := by
-  induction h <;> grind [EqvGen]
+  induction h <;> grind
 
-@[grind →]
 theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
-  induction h <;> grind [EqvGen]
+  induction h <;> grind
 
+attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
+
+-- TODO: more standard notation
 local infix:50 " ⇓ " => Join (ReflTransGen r)
 local infixr:50 " ⭢ " => r
 local infixr:50 " ↠ " => ReflTransGen r
@@ -43,18 +52,47 @@ abbrev Normal (x : α) : Prop := ¬Reducible r x
 
 abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
 
-theorem ChurchRosser_toConfluent (h : ChurchRosser r) : Confluent r := by
-  grind [EqvGen]
+@[scoped grind →]
+theorem confluent_toChurchRosser (h : Confluent r) : ChurchRosser r := by
+  intro x y h_eqv
+  induction h_eqv with
+  | rel _ b => exists b; grind [ReflTransGen.single]
+  | refl a => exists a
+  | symm a b _ ih => exact symmetric_join ih
+  | trans _ _ _ _ _ ih1 ih2 =>
+      obtain ⟨u, _, hbu⟩ := ih1
+      obtain ⟨v, hbv, _⟩ := ih2
+      obtain ⟨w, _, _⟩ := h hbu hbv
+      exists w
+      grind [ReflTransGen.trans]
 
-theorem Confluent_toSemiConfluent (h : Confluent r) : SemiConfluent r := by
-  intro _ _ _ x_y₂ x_y₁
-  exact symmetric_join <| h x_y₂ (.single x_y₁)
+@[scoped grind →]
+theorem semiConfluent_toConfluent (h : SemiConfluent r) : Confluent r := by
+  intro x y1 y2 h_xy1 h_xy2
+  induction h_xy1 with
+  | refl => exact ⟨y2, h_xy2, .refl⟩
+  | tail h_xz h_zy1 ih =>
+    obtain ⟨u, h_zu, h_y2u⟩ := ih
+    obtain ⟨v, h_y1v, h_uv⟩ := h h_zu h_zy1
+    exact ⟨v, h_y1v, .trans h_y2u h_uv⟩
 
-proof_wanted SemiConfluent_toChurchRosser (h : SemiConfluent r) : (ChurchRosser r)
+private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
+  grind [List.tfae_cons_cons, List.tfae_singleton]
+
+/-- Theorem 2.1.5 (3 ⇒ 1): Semi-confluence implies the Church-Rosser property. -/
+theorem SemiConfluent_iff_ChurchRosser : SemiConfluent r ↔ ChurchRosser r :=
+  List.TFAE.out (confluent_equivalents r) 1 0
+
+theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
+  List.TFAE.out (confluent_equivalents r) 2 0
+
+theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
+  List.TFAE.out (confluent_equivalents r) 2 1
 
 -- 2.1.6
 attribute [grind] ReflTransGen
-theorem ChurchRosser_Normal₁ (h1 : ChurchRosser r) (h2 : EqvGen r x y) : Normal r y → ReflTransGen r x y := by
+theorem ChurchRosser_Normal₁ (h1 : ChurchRosser r) (h2 : EqvGen r x y) :
+    Normal r y → ReflTransGen r x y := by
   intro hn
   --simp only [Normal, Reducible, not_exists] at hn
   induction h2
