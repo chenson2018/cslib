@@ -101,6 +101,11 @@ theorem ChurchRosser_Normal₁ (cr : ChurchRosser r) (xy : x ≈ y) : Normal r y
   have ⟨_, _, _⟩ := cr xy
   grind
 
+theorem ChurchRosser_Normal₂ (cr : ChurchRosser r) (xy : x ≈ y)
+    (ny : Normal r y) (nx : Normal r x) : x = y := by
+  have ⟨_, _, _⟩ := cr xy
+  grind
+
 end Relation
 
 /-! # Relations -/
