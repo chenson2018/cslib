@@ -70,11 +70,12 @@ theorem confluent_toChurchRosser (h : Confluent r) : ChurchRosser r := by
 theorem semiConfluent_toConfluent (h : SemiConfluent r) : Confluent r := by
   intro x y1 y2 h_xy1 h_xy2
   induction h_xy1 with
-  | refl => exact ⟨y2, h_xy2, .refl⟩
+  | refl => use y2
   | tail h_xz h_zy1 ih =>
-    obtain ⟨u, h_zu, h_y2u⟩ := ih
-    obtain ⟨v, h_y1v, h_uv⟩ := h h_zu h_zy1
-    exact ⟨v, h_y1v, .trans h_y2u h_uv⟩
+      obtain ⟨u, h_zu, _⟩ := ih
+      obtain ⟨v, _, _⟩ := h h_zu h_zy1
+      exists v
+      grind [ReflTransGen.trans]
 
 private theorem confluent_equivalents : [ChurchRosser r, SemiConfluent r, Confluent r].TFAE := by
   grind [List.tfae_cons_cons, List.tfae_singleton]
