@@ -50,6 +50,13 @@ abbrev Reducible (x : α) : Prop := ∃ y, r x y
 
 abbrev Normal (x : α) : Prop := ¬Reducible r x
 
+theorem normal_eq {r} (h : Normal r x) (xy : r x y) : x = y := by
+  grind
+
+@[grind =>]
+theorem ReflTransGen.normal_eq {r} (h : Normal r x) (xy : ReflTransGen r x y) : x = y := by
+  induction xy <;> grind 
+
 abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
 
 @[scoped grind →]
@@ -90,27 +97,9 @@ theorem Confluent_iff_ChurchRosser : Confluent r ↔ ChurchRosser r :=
 theorem Confluent_iff_SemiConfluent : Confluent r ↔ SemiConfluent r :=
   List.TFAE.out (confluent_equivalents r) 2 1
 
--- 2.1.6
-attribute [grind] ReflTransGen
-theorem ChurchRosser_Normal₁ (h1 : ChurchRosser r) (h2 : EqvGen r x y) :
-    Normal r y → ReflTransGen r x y := by
-  intro hn
-  --simp only [Normal, Reducible, not_exists] at hn
-  induction h2
-  case rel x y xy => exact .single xy
-  case refl x' => exact .refl
-  case symm x y xy ih =>
-    have hjoin := h1 xy
-    obtain ⟨ a, hl, hr ⟩ := hjoin
-    -- simp [Normal] at hn
-    have hcases := Relation.ReflTransGen.cases_head hl
-    cases hcases
-    case inl heq => grind
-    case inr h =>
-      obtain ⟨ c, h2, h3 ⟩ := h
-      simp [Normal] at hn
-      grind
-  sorry
+theorem ChurchRosser_Normal₁ (cr : ChurchRosser r) (xy : x ≈ y) : Normal r y → x ↠ y := by
+  have ⟨_, _, _⟩ := cr xy
+  grind
 
 end Relation
 
