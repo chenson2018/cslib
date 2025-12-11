@@ -52,6 +52,8 @@ abbrev Normal (x : α) : Prop := ¬Reducible r x
 
 abbrev Normalizing (a : α) := ∃ b, ReflTransGen r a b ∧ Normal r b
 
+abbrev Acyclic (a : α) := ¬ TransGen r a a
+
 theorem normal_eq {r} (h : Normal r x) (xy : r x y) : x = y := by
   grind
 
