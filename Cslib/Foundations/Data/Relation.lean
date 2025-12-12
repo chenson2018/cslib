@@ -6,6 +6,7 @@ Authors: Fabrizio Montesi, Thomas Waring, Chris Henson
 
 import Cslib.Init
 import Mathlib.Logic.Relation
+import Mathlib.Data.Finite.Defs
 import Mathlib.Data.List.TFAE
 
 -- TODO: some of this should be upstreamed to Mathlib?
@@ -46,13 +47,30 @@ abbrev ChurchRosser := ∀ {x y}, x ≈ y → x ⇓ y
 
 abbrev Confluent := Diamond (· ↠ ·)
 
+abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
+
 abbrev Reducible (x : α) : Prop := ∃ y, r x y
 
 abbrev Normal (x : α) : Prop := ¬Reducible r x
 
 abbrev Normalizing (a : α) := ∃ b, ReflTransGen r a b ∧ Normal r b
 
-abbrev Acyclic (a : α) := ¬ TransGen r a a
+-- TODO: not sure if working with `WellFounded` or `WellFoundedRelation` is better...
+abbrev Convergent := Confluent r ∧ WellFounded r
+
+abbrev FinitelyBranching := ∀ x, Finite {y | x ⭢ y}
+
+abbrev GloballyFinite := FinitelyBranching (TransGen r)
+
+abbrev Acyclic := ∀ a, ¬ TransGen r a a
+
+theorem FinitelyBranching.WellFounded_toGloballyFinite
+    (fb : FinitelyBranching r) (wf : WellFounded r) : GloballyFinite r :=
+  sorry
+
+theorem Acyclic.GloballyFinite_toWellFounded (ac : Acyclic r) (gf : GloballyFinite r) :
+    WellFounded r :=
+  sorry
 
 theorem normal_eq {r} (h : Normal r x) (xy : r x y) : x = y := by
   grind
@@ -60,8 +78,6 @@ theorem normal_eq {r} (h : Normal r x) (xy : r x y) : x = y := by
 @[grind =>]
 theorem ReflTransGen.normal_eq {r} (h : Normal r x) (xy : ReflTransGen r x y) : x = y := by
   induction xy <;> grind
-
-abbrev SemiConfluent := ∀ {x y₁ y₂}, x ↠ y₂ → x ⭢ y₁ → y₁ ⇓ y₂
 
 @[scoped grind →]
 theorem confluent_toChurchRosser (h : Confluent r) : ChurchRosser r := by
