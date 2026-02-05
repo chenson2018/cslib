@@ -112,6 +112,7 @@ lemma parallel_mRed {a a' b b' : SKI} (ha : a ↠ a') (hb : b ↠ b') :
 lemma parallel_red {a a' b b' : SKI} (ha : a ⭢ a') (hb : b ⭢ b') : (a ⬝ b) ↠ (a' ⬝ b') := by
   trans a' ⬝ b <;> grind
 
+-- TODO: inline `SKI.CommonReduct` as `Relation.MJoin Red`
 /-- Express that two terms have a reduce to a common term. -/
 def CommonReduct : SKI → SKI → Prop := Relation.MJoin Red
 

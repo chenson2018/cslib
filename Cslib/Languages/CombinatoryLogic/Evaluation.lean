@@ -144,6 +144,7 @@ theorem RedexFree.no_red : {x : SKI} → x.RedexFree → ∀ y, ¬ (x ⭢ y)
 | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨hx, _⟩, _ ⬝ _, red_head _ _ _ hq => hx.no_red _ hq
 | _ ⬝ _ ⬝ _ ⬝ _ ⬝ _, ⟨_, hy⟩, _ ⬝ _, red_tail _ _ _ he => hy.no_red _ he
 
+-- TODO: `SKI.redexFree_iff` and related theorems should use `Relation.Normal`
 /-- A term is redex free iff it has no one-step reductions. -/
 theorem redexFree_iff {x : SKI} : x.RedexFree ↔ ∀ y, ¬ (x ⭢ y) :=
   ⟨RedexFree.no_red, redexFree_of_no_red⟩
