@@ -223,11 +223,11 @@ theorem isBool_injective (x y : SKI) (u v : Bool) (hx : IsBool u x) (hy : IsBool
   have h : CommonReduct (if u then S else K) (if v then S else K) := by
     apply commonReduct_equivalence.trans (y := x ⬝ S ⬝ K)
     · apply commonReduct_equivalence.symm
-      apply commonReduct_of_single
+      apply Relation.MJoin.single
       exact hx S K
     · apply commonReduct_equivalence.trans (y := y ⬝ S ⬝ K)
       · exact commonReduct_head K <| commonReduct_head S hxy
-      · apply commonReduct_of_single
+      · apply Relation.MJoin.single
         exact hy S K
   by_cases u
   case pos hu =>
@@ -277,11 +277,11 @@ theorem isChurch_injective (x y : SKI) (n m : Nat) (hx : IsChurch n x) (hy : IsC
     exact eq_of_commonReduct_redexFree this (churchK_redexFree n) (churchK_redexFree m)
   apply commonReduct_equivalence.trans (y := x ⬝ K ⬝ K)
   · simp_rw [churchK_church]
-    exact commonReduct_equivalence.symm <| commonReduct_of_single (hx K K)
+    exact commonReduct_equivalence.symm <| Relation.MJoin.single (hx K K)
   · apply commonReduct_equivalence.trans (y := y ⬝ K ⬝ K)
     · apply commonReduct_head; apply commonReduct_head; assumption
     · simp_rw [churchK_church]
-      exact commonReduct_of_single (hy K K)
+      exact Relation.MJoin.single (hy K K)
 
 /--
 **Rice's theorem**: no SKI term is a non-trivial predicate.

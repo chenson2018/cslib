@@ -12,6 +12,7 @@ public import Mathlib.Data.List.TFAE
 public import Mathlib.Order.Comparable
 public import Mathlib.Order.WellFounded
 public import Mathlib.Order.BooleanAlgebra.Basic
+public import Mathlib.Util.Notation3
 
 @[expose] public section
 
@@ -48,10 +49,22 @@ theorem ReflTransGen.to_eqvGen (h : ReflTransGen r a b) : EqvGen r a b := by
 -- TODO: topNamespace environment linter fails for CompRel.to_eqvGen
 @[nolint topNamespace]
 theorem _root_.CompRel.to_eqvGen (h : CompRel r a b) : EqvGen r a b := by
-  induction h <;> grind
+  grind
 
 attribute [scoped grind →] ReflGen.to_eqvGen TransGen.to_eqvGen ReflTransGen.to_eqvGen
   CompRel.to_eqvGen
+
+/-- The join of the reflexive transitive closure. This is not named in Mathlib, but see
+  `#loogle Relation.Join (Relation.ReflTransGen ?r)` -/
+abbrev MJoin (r : α → α → Prop) := Join (ReflTransGen r)
+
+theorem MJoin.refl (a : α) : MJoin r a a := by
+  use a
+
+theorem MJoin.symm : Symmetric (MJoin r) := Relation.symmetric_join
+
+theorem MJoin.single (h : ReflTransGen r a b) : MJoin r a b := by
+  use b
 
 /-- The relation `r` 'up to' the relation `s`. -/
 def UpTo (r s : α → α → Prop) : α → α → Prop := Comp s (Comp r s)
@@ -405,5 +418,68 @@ theorem reflTransGen_compRel : ReflTransGen (CompRel r) = EqvGen r := by
       rw [compRel_swap]
       exact reflTransGen_swap.mp ih
     | trans _ _ _ _ _ ih₁ ih₂ => exact ih₁.trans ih₂
+
+public meta section
+
+open Lean Elab Meta Command Term
+
+/--
+  This command adds notations for relations. This should not usually be called directly, but from
+  the `reduction` attribute.
+
+  As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
+
+  Note that the string used will afterwards be registered as a notation. This means that if you have
+  also used this as a constructor name, you will need quotes to access corresponding cases, e.g. «β»
+  in the above example.
+-/
+syntax attrKind "reduction_notation" ident (str)? : command
+macro_rules
+  | `($kind:attrKind reduction_notation $rel $sym) =>
+    `(
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ⭢" $sym:str t':39 => $rel t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ↠" $sym:str t':39 => Relation.ReflTransGen $rel t t'
+     )
+  | `($kind:attrKind reduction_notation $rel) =>
+    `(
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ⭢ " t':39 => $rel t t'
+      @[nolint docBlame]
+      $kind:attrKind notation3 t:39 " ↠ " t':39 => Relation.ReflTransGen $rel t t'
+     )
+
+
+/--
+  This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
+
+  ```
+  @[reduction "ₙ", simp]
+  def PredReduction (a b : ℕ) : Prop := a = b + 1
+  ```
+-/
+syntax (name := reduction) "reduction" (ppSpace str)? : attr
+
+initialize Lean.registerBuiltinAttribute {
+  name := `reduction
+  descr := "Register notation for a relation and its closures."
+  add := fun decl stx _ => MetaM.run' do
+    match stx with
+    | `(attr | reduction $sym) =>
+        let mut sym := sym
+        unless sym.getString.endsWith " " do
+          sym := Syntax.mkStrLit (sym.getString ++ " ")
+        liftCommandElabM <| do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          elabCommand (← `(scoped reduction_notation $(mkIdent decl) $sym))
+    | `(attr | reduction) =>
+        liftCommandElabM <| do
+          modifyScope ({ · with currNamespace := decl.getPrefix })
+          elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
+    | _ => throwError "invalid syntax for 'reduction' attribute"
+}
+
+end
 
 end Relation
