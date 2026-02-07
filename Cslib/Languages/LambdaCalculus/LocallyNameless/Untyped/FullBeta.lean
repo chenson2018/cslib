@@ -32,7 +32,7 @@ variable {Var : Type u}
 namespace LambdaCalculus.LocallyNameless.Untyped.Term
 
 /-- A single β-reduction step. -/
-@[reduction "βᶠ"]
+@[reduction_sys "βᶠ"]
 inductive FullBeta : Term Var → Term Var → Prop
 /-- Reduce an application to a lambda term. -/
 | beta : LC (abs M)→ LC N → FullBeta (app (abs M) N) (M ^ N)

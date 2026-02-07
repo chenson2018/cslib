@@ -423,7 +423,7 @@ open Lean Elab Meta Command Term
 
 /--
   This command adds notations for relations. This should not usually be called directly, but from
-  the `reduction` attribute.
+  the `reduction_sys` attribute.
 
   As an example `reduction_notation foo "β"` will add the notations "⭢β" and "↠β".
 
@@ -453,29 +453,29 @@ macro_rules
   This attribute calls the `reduction_notation` command for the annotated declaration, such as in:
 
   ```
-  @[reduction "ₙ", simp]
+  @[reduction_sys "ₙ", simp]
   def PredReduction (a b : ℕ) : Prop := a = b + 1
   ```
 -/
-syntax (name := reduction) "reduction" (ppSpace str)? : attr
+syntax (name := reduction_sys) "reduction_sys" (ppSpace str)? : attr
 
 initialize Lean.registerBuiltinAttribute {
-  name := `reduction
+  name := `reduction_sys
   descr := "Register notation for a relation and its closures."
   add := fun decl stx _ => MetaM.run' do
     match stx with
-    | `(attr | reduction $sym) =>
+    | `(attr | reduction_sys $sym) =>
         let mut sym := sym
         unless sym.getString.endsWith " " do
           sym := Syntax.mkStrLit (sym.getString ++ " ")
         liftCommandElabM <| do
           modifyScope ({ · with currNamespace := decl.getPrefix })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl) $sym))
-    | `(attr | reduction) =>
+    | `(attr | reduction_sys) =>
         liftCommandElabM <| do
           modifyScope ({ · with currNamespace := decl.getPrefix })
           elabCommand (← `(scoped reduction_notation $(mkIdent decl)))
-    | _ => throwError "invalid syntax for 'reduction' attribute"
+    | _ => throwError "invalid syntax for 'reduction_sys' attribute"
 }
 
 end

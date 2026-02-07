@@ -72,7 +72,7 @@ def size : SKI → Nat
 /-! ### Reduction relations between SKI terms -/
 
 /-- Single-step reduction of SKI terms -/
-@[scoped grind, reduction]
+@[scoped grind, reduction_sys]
 inductive Red : SKI → SKI → Prop where
   /-- The operational semantics of the `S`, -/
   | red_S (x y z : SKI) : Red (S ⬝ x ⬝ y ⬝ z) (x ⬝ z ⬝ (y ⬝ z))

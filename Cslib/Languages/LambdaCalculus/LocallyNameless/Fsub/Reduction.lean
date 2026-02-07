@@ -85,7 +85,7 @@ lemma Value.lc {t : Term Var} (val : t.Value) : t.LC := by
   induction val <;> grind
 
 /-- The call-by-value reduction relation. -/
-@[grind, reduction "βᵛ"]
+@[grind, reduction_sys "βᵛ"]
 inductive Red : Term Var → Term Var → Prop
   | appₗ : LC t₂ → Red t₁ t₁' → Red (app t₁ t₂) (app t₁' t₂)
   | appᵣ : Value t₁ → Red t₂ t₂' → Red (app t₁ t₂) (app t₁ t₂')

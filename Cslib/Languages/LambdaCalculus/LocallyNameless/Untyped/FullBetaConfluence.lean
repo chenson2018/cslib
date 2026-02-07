@@ -26,7 +26,7 @@ namespace LambdaCalculus.LocallyNameless.Untyped.Term
 open Relation
 
 /-- A parallel β-reduction step. -/
-@[reduction "ₚ"]
+@[reduction_sys "ₚ"]
 inductive Parallel : Term Var → Term Var → Prop
 /-- Free variables parallel step to themselves. -/
 | fvar (x : Var) : Parallel (fvar x) (fvar x)
